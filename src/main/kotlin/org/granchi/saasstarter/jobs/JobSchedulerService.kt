@@ -25,10 +25,10 @@ import java.util.UUID
 class JobSchedulerService(private val jobScheduler: JobScheduler) {
 
     fun enqueue(job: JobLambda): UUID =
-        jobScheduler.enqueue(job)
+        jobScheduler.enqueue(job).asUUID()
 
     fun schedule(runAt: Instant, job: JobLambda): UUID =
-        jobScheduler.schedule(runAt, job)
+        jobScheduler.schedule(runAt, job).asUUID()
 
     fun scheduleIn(delay: Duration, job: JobLambda): UUID =
         schedule(Instant.now().plus(delay), job)

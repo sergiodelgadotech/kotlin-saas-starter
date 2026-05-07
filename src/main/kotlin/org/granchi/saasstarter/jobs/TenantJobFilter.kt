@@ -1,55 +1,55 @@
 package org.granchi.saasstarter.jobs
 
 import org.granchi.saasstarter.tenant.TenantContext
+import org.jobrunr.jobs.AbstractJob
+import org.jobrunr.jobs.Job
 import org.jobrunr.jobs.filters.JobClientFilter
 import org.jobrunr.jobs.filters.JobServerFilter
-import org.jobrunr.jobs.Job
-import org.jobrunr.jobs.context.JobContext
 import org.springframework.stereotype.Component
 import java.util.UUID
 
 /**
- * Jobrunr filter that stores the current tenant ID in the job's
- * metadata before enqueueing, and restores it when the job runs.
+ * Jobrunr filter that propagates the current tenant ID through a job's
+ * lifecycle: it tags the job with a `tenant:<uuid>` label on creation and
+ * restores the tenant on the worker before the job runs.
  *
- * This allows services inside a job to call TenantContext.get()
- * as if they were in a normal HTTP request.
+ * The tenant label is also visible in the JobRunr dashboard, which makes
+ * per-tenant filtering of jobs a useful side effect.
+ *
+ * Note: a single job may carry at most one tenant label. JobRunr caps a
+ * job's labels at 3 × 45 chars; `tenant:` + a UUID is 43 chars and fits.
  */
 @Component
 class TenantJobFilter : JobClientFilter, JobServerFilter {
 
-    companion object {
-        private const val TENANT_ID_KEY = "tenantId"
-    }
-
-    // Called before the job is saved — store current tenant
-    override fun onCreating(job: Job) {
+    override fun onCreating(job: AbstractJob) {
         if (TenantContext.isPresent()) {
-            job.jobDetails.addJobParameter(
-                TENANT_ID_KEY,
-                TenantContext.get().toString()
-            )
+            job.labels = job.labels + "$TENANT_LABEL_PREFIX${TenantContext.get()}"
         }
     }
 
-    // Called before the job runs — restore tenant
     override fun onProcessing(job: Job) {
-        val tenantIdStr = job.jobDetails.jobParameters
-            .find { it.className == "java.lang.String" && it.`object` is String }
-            ?.`object` as? String
+        val tenantId = job.labels
+            .firstOrNull { it.startsWith(TENANT_LABEL_PREFIX) }
+            ?.removePrefix(TENANT_LABEL_PREFIX)
             ?: return
 
         try {
-            TenantContext.set(UUID.fromString(tenantIdStr))
-        } catch (e: IllegalArgumentException) {
-            // Not a UUID — job was enqueued without tenant context (e.g. system job)
+            TenantContext.set(UUID.fromString(tenantId))
+        } catch (_: IllegalArgumentException) {
+            // Label was malformed; leave context unset rather than poisoning it.
         }
     }
 
-    // Called after the job completes — clean up
-    override fun onProcessed(job: Job) {
+    override fun onProcessingSucceeded(job: Job) {
         TenantContext.clear()
     }
 
-    override fun onCreated(job: Job) {}
+    override fun onProcessingFailed(job: Job, e: Exception) {
+        TenantContext.clear()
+    }
+
+    companion object {
+        private const val TENANT_LABEL_PREFIX = "tenant:"
+    }
 }
