@@ -89,9 +89,9 @@ publishing {
             url = uri("https://maven.pkg.github.com/granchi/kotlin-saas-starter")
             credentials {
                 username = providers.gradleProperty("gpr.user")
-                    .orElse(providers.environmentVariable("GITHUB_ACTOR")).get()
+                    .orElse(providers.environmentVariable("GITHUB_ACTOR")).getOrElse("")
                 password = providers.gradleProperty("gpr.token")
-                    .orElse(providers.environmentVariable("GITHUB_TOKEN")).get()
+                    .orElse(providers.environmentVariable("GITHUB_TOKEN")).getOrElse("")
             }
         }
     }
