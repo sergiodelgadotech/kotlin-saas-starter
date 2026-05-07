@@ -37,6 +37,9 @@ dependencies {
     api(libs.auth0.jwt)
     api(libs.auth0.jwks)
 
+    // Konform — exposed in our public API (Validation<T>, DomainValidationException.errors)
+    api(libs.konform)
+
     // Tests
     testImplementation(libs.spring.boot.starter)
     testImplementation(libs.spring.boot.web)

@@ -1,5 +1,6 @@
 package org.granchi.saasstarter.web
 
+import org.granchi.saasstarter.validation.DomainValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.ui.Model
@@ -10,8 +11,6 @@ import org.springframework.web.bind.annotation.ResponseStatus
 class NotFoundException(message: String) : RuntimeException(message)
 class ForbiddenException(message: String) : RuntimeException(message)
 
-import org.granchi.saasstarter.validation.DomainValidationException
-
 @ControllerAdvice
 class GlobalExceptionHandler {
 
@@ -20,7 +19,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(DomainValidationException::class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     fun handleDomainValidation(ex: DomainValidationException, model: Model): String {
-        model.addAttribute("errors", ex.errors.map { "${it.dataPath}: ${it.message}" })
+        model.addAttribute("errors", ex.errors.map { "${it.path}: ${it.message}" })
         return "error/422"
     }
 
