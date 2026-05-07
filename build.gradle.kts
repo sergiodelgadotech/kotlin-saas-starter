@@ -70,12 +70,6 @@ publishing {
                 name.set("Kotlin SaaS Starter")
                 description.set("Opinionated transversal library for B2B SaaS in Kotlin + Spring Boot")
                 url.set("https://github.com/granchi/kotlin-saas-starter")
-                licenses {
-                    license {
-                        name.set("Apache License 2.0")
-                        url.set("https://www.apache.org/licenses/LICENSE-2.0")
-                    }
-                }
                 developers {
                     developer {
                         id.set("granchi")

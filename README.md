@@ -83,6 +83,3 @@ If your stack diverges from these, this library is probably not for you.
 
 Follows [Semantic Versioning](https://semver.org). Releases are automated via [release-please](https://github.com/googleapis/release-please) — see `CONTRIBUTING.md`.
 
-## License
-
-Apache License 2.0 — see `LICENSE`.
