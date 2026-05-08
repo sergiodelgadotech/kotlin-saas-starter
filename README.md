@@ -67,6 +67,10 @@ class WebMvcConfig(
 
 See the companion repo `mvp-saas-template` for a full example.
 
+## Project tracking
+
+Active development is tracked on the [Starter/template split project](https://github.com/users/serandel/projects/6), which spans this library and the [mvp-saas-template](https://github.com/serandel/mvp-saas-template) reference application.
+
 ## Stack opinions
 
 This library is opinionated. It assumes:

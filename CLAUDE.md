@@ -98,6 +98,16 @@ Test layers in this repo:
 
 There are no E2E tests here — those belong in the consuming app's test suite.
 
+## Planning workflow
+
+Implementation plans for this library live as **GitHub issues**, not markdown files. They're tracked alongside template-side issues on a single board:
+
+- **Project board:** <https://github.com/users/serandel/projects/6> ("Starter/template split") — surfaces issues from this repo and `mvp-saas-template` together. The custom `Plan` field groups items by plan number.
+- **Labels:** plan issues carry `plan` and `starter-split`; cross-repo plans also carry `cross-repo` and a `> **Companion:**` blockquote at the top of the body linking the partner issue in the template repo.
+- **Sequencing:** each plan issue has a `### Blocked by` task list whose items auto-check when the referenced issues close.
+
+When a new plan is needed, create the issue (or pair of issues for cross-repo work) — don't write a new markdown plan file.
+
 ## Things Claude should NOT do without asking
 
 - Adding a new public interface or class — propose it first
