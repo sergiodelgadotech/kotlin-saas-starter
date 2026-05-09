@@ -12,7 +12,7 @@ It is published as a Maven artifact to GitHub Packages and consumed by SaaS appl
 implementation("org.granchi:kotlin-saas-starter:0.1.0")
 ```
 
-The companion repository `mvp-saas-template` is the canonical example of how to consume this library.
+The companion repository `kotlin-saas-template` is the canonical example of how to consume this library.
 
 ## The library's scope
 
@@ -66,7 +66,7 @@ src/test/kotlin/org/granchi/saasstarter/
 ```bash
 ./gradlew build               # compiles + runs tests
 ./gradlew test                # tests only
-./gradlew publishToMavenLocal # install locally for testing in mvp-saas-template
+./gradlew publishToMavenLocal # install locally for testing in kotlin-saas-template
 ```
 
 ### Versioning and releases
@@ -102,7 +102,7 @@ There are no E2E tests here — those belong in the consuming app's test suite.
 
 Implementation plans for this library live as **GitHub issues**, not markdown files. They're tracked alongside template-side issues on a single board:
 
-- **Project board:** <https://github.com/users/serandel/projects/6> ("Starter/template split") — surfaces issues from this repo and `mvp-saas-template` together. The custom `Plan` field groups items by plan number.
+- **Project board:** <https://github.com/users/serandel/projects/6> ("Starter/template split") — surfaces issues from this repo and `kotlin-saas-template` together. The custom `Plan` field groups items by plan number.
 - **Labels:** plan issues carry `plan` and `starter-split`; cross-repo plans also carry `cross-repo` and a `> **Companion:**` blockquote at the top of the body linking the partner issue in the template repo.
 - **Sequencing:** each plan issue has a `### Blocked by` task list whose items auto-check when the referenced issues close.
 
