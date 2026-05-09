@@ -23,6 +23,7 @@ auth0-jwks                    = { module = "com.auth0:jwks-rsa", version.ref = "
 jobrunr-spring                = { module = "org.jobrunr:jobrunr-spring-boot-3-starter", version.ref = "jobrunr" }
 konform                       = { module = "io.konform:konform-jvm", version.ref = "konform" }
 strikt-core                   = { module = "io.strikt:strikt-core", version.ref = "strikt" }
+junit-platform-launcher       = { module = "org.junit.platform:junit-platform-launcher" }
 testcontainers-junit          = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
 
 [plugins]

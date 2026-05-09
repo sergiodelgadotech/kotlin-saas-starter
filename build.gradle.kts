@@ -53,6 +53,9 @@ dependencies {
     testImplementation(libs.spring.boot.test)
     testImplementation(libs.strikt.core)
     testImplementation(libs.testcontainers.junit)
+
+    // Gradle 9's useJUnitPlatform() no longer auto-adds the launcher.
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 java {
