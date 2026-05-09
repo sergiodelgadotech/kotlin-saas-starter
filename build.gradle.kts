@@ -26,6 +26,7 @@ dependencies {
     // Spring Boot — declared as `compileOnly` so consumers bring their own
     // version. They pick the Spring Boot version, we just use its APIs.
     compileOnly(libs.spring.boot.starter)
+    compileOnly(libs.spring.boot.autoconfigure)
     compileOnly(libs.spring.boot.web)
     compileOnly(libs.spring.boot.security)
     compileOnly(libs.spring.boot.data.redis)
@@ -42,6 +43,7 @@ dependencies {
 
     // Tests
     testImplementation(libs.spring.boot.starter)
+    testImplementation(libs.spring.boot.autoconfigure)
     testImplementation(libs.spring.boot.web)
     testImplementation(libs.spring.boot.security)
     testImplementation(libs.spring.boot.data.redis)
