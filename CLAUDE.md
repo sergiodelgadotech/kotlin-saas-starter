@@ -2,6 +2,10 @@
 
 This file gives Claude Code the context it needs to work effectively on this repository. Read it first.
 
+## Workflow Conventions
+
+- Use trunk-based development; do NOT propose feature branches.
+
 ## What this repo is
 
 `kotlin-saas-starter` is an opinionated **library** that captures the transversal infrastructure for B2B SaaS products built in Kotlin + Spring Boot. It is **not an application** — it has no `main()`, no controllers, no domain entities. It exposes reusable building blocks that consuming applications wire into their own setup.
@@ -45,6 +49,12 @@ These are non-negotiable. If you're tempted to change them, propose it as a disc
 - **Kotlin-first** — no Java compatibility layer, no `JvmStatic` unless strictly necessary. Consumers are assumed to be Kotlin codebases.
 
 ## Project structure
+
+### Repo locations
+
+- `kotlin-saas-template` lives at `../kotlin-saas-template` (real local clone). Do NOT clone fresh into `/tmp`.
+
+### Source layout
 
 ```
 src/main/kotlin/org/granchi/saasstarter/
