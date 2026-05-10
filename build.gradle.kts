@@ -77,7 +77,7 @@ publishing {
             pom {
                 name.set("Kotlin SaaS Starter")
                 description.set("Opinionated transversal library for B2B SaaS in Kotlin + Spring Boot")
-                url.set("https://github.com/granchi/kotlin-saas-starter")
+                url.set("https://github.com/serandel/kotlin-saas-starter")
                 developers {
                     developer {
                         id.set("granchi")
@@ -85,7 +85,7 @@ publishing {
                     }
                 }
                 scm {
-                    url.set("https://github.com/granchi/kotlin-saas-starter")
+                    url.set("https://github.com/serandel/kotlin-saas-starter")
                 }
             }
         }
@@ -94,7 +94,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/granchi/kotlin-saas-starter")
+            url = uri("https://maven.pkg.github.com/serandel/kotlin-saas-starter")
             credentials {
                 username = providers.gradleProperty("gpr.user")
                     .orElse(providers.environmentVariable("GITHUB_ACTOR")).getOrElse("")
