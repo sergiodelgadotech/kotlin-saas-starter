@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/serandel/kotlin-saas-starter/compare/v0.2.0...v0.2.1) (2026-05-10)
+
+
+### Bug Fixes
+
+* point GitHub Packages publish URL at the actual repo owner ([7d6ac54](https://github.com/serandel/kotlin-saas-starter/commit/7d6ac54aef035990af33f2afc745d49fa8440b1e))
+
 ## [0.2.0](https://github.com/serandel/kotlin-saas-starter/compare/v0.1.0...v0.2.0) (2026-05-09)
 
 
