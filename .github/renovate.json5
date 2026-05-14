@@ -1,0 +1,53 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    "config:recommended",
+  ],
+
+  // Weekly run Monday before 6 AM UTC — one batch per week, no mid-week noise.
+  schedule: ["before 6am on monday"],
+  timezone: "UTC",
+
+  // chore(deps): by default so Renovate PRs don't trigger release-please bumps.
+  // Security PRs override this to fix(deps): below, which does create a patch release.
+  semanticCommits: "enabled",
+  semanticCommitType: "chore",
+  semanticCommitScope: "deps",
+
+  // No auto-merge — library changes need a human eye regardless of CI outcome.
+  automerge: false,
+
+  packageRules: [
+    // Group all minor + patch updates into one PR per week to reduce noise.
+    {
+      matchUpdateTypes: ["minor", "patch"],
+      groupName: "all non-major dependencies",
+      groupSlug: "all-non-major",
+    },
+
+    // Major updates always get individual PRs so the diff is easy to review.
+    {
+      matchUpdateTypes: ["major"],
+      groupName: null,
+    },
+
+    // Gradle wrapper gets its own PR — it's infra, not a library dep.
+    {
+      matchManagers: ["gradle-wrapper"],
+      groupName: "Gradle wrapper",
+    },
+
+    // Spring Boot versions are compileOnly here; consumers supply the runtime.
+    // Still keep them updated so we compile against a recent API surface.
+    // No special treatment needed beyond the default grouping above.
+
+    // Security vulnerabilities: override to fix(deps): so they surface as
+    // patch releases and are clearly marked in the changelog.
+    {
+      matchCategories: ["security"],
+      semanticCommitType: "fix",
+      groupName: null,
+      automerge: false,
+    },
+  ],
+}
