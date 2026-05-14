@@ -1,1 +1,2 @@
 org.granchi.saasstarter.autoconfigure.SaasStarterAutoConfiguration
+org.granchi.saasstarter.autoconfigure.SessionAutoConfiguration
