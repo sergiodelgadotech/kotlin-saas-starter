@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.3.0](https://github.com/SergioDelgado-tech/kotlin-saas-starter/compare/v0.2.1...v0.3.0) (2026-05-14)
+
+
+### Features
+
+* add session group to SaasStarterProperties ([6ca2ccf](https://github.com/SergioDelgado-tech/kotlin-saas-starter/commit/6ca2ccf3d6d725955c3698cf420f0efb991b7704))
+* add SessionAutoConfiguration for Redis HTTP sessions ([5172fd1](https://github.com/SergioDelgado-tech/kotlin-saas-starter/commit/5172fd1fe98c77a35f0c8501aa58f0166afe415d))
+* register SessionAutoConfiguration via AutoConfiguration.imports ([e3460e9](https://github.com/SergioDelgado-tech/kotlin-saas-starter/commit/e3460e9575e2d25a49b44b74755ed740ed830c79))
+
+
+### Bug Fixes
+
+* add @AutoConfigureAfter(RedisAutoConfiguration) to SessionAutoConfiguration ([41cf5ee](https://github.com/SergioDelgado-tech/kotlin-saas-starter/commit/41cf5ee9bba2d1e5eb2708c042d7f02eaa23ea62))
+* correct GitHub Packages URL to use org owner SergioDelgado-tech ([c63ac80](https://github.com/SergioDelgado-tech/kotlin-saas-starter/commit/c63ac80bff0fc3200b5be6e9f0deda7efdcd900f))
+
+
+### Documentation
+
+* add workflow conventions and repo locations to CLAUDE.md ([bae110f](https://github.com/SergioDelgado-tech/kotlin-saas-starter/commit/bae110f8ce4104d970ca88b60ab8680d38184a9f))
+
 ## [0.2.1](https://github.com/serandel/kotlin-saas-starter/compare/v0.2.0...v0.2.1) (2026-05-10)
 
 
