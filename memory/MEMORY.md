@@ -1,5 +1,5 @@
 - [Sibling repo locations](repo_locations.md) — kotlin-saas-template is at `../kotlin-saas-template`, work in it directly
 - [Project board status automation](feedback_project_board_automation.md) — auto-move plan issues: In Progress on start, Done+close on user-confirmed completion
-- [Publishing kotlin-saas-starter to mavenLocal](feedback_publish_to_maven_local.md) — run publishToMavenLocal here without asking when the template needs an updated starter
+- [Composite build replaces publishToMavenLocal](feedback_publish_to_maven_local.md) — template uses includeBuild; no publishToMavenLocal or SNAPSHOT bumps needed for local dev
 - [Check off plan-issue checkboxes as substeps complete](feedback_plan_issue_checkboxes.md) — tick `- [ ]` → `- [x]` in the plan issue's body as substeps land, not just at task boundaries
 - [Trunk-based development — commit on main](feedback_trunk_based_development.md) — both repos commit directly to main; skip feature branches and worktrees

@@ -1,13 +1,14 @@
 ---
-name: Publishing kotlin-saas-starter to mavenLocal
-description: When a build chain needs an updated starter artifact (typically the template consuming this library), run publishToMavenLocal here without asking
+name: Composite build replaces publishToMavenLocal
+description: The template uses a Gradle composite build to resolve the starter locally — no publishToMavenLocal needed for cross-repo development
 type: feedback
+originSessionId: f42991ad-d37e-48b9-939e-a54014347778
 ---
-The template (`../kotlin-saas-template`) consumes `org.granchi:kotlin-saas-starter` from `mavenLocal()` (added to its `settings.gradle.kts` as a fallback alongside GitHub Packages). When a build needs a starter version that isn't in `~/.m2/repository/org/granchi/kotlin-saas-starter/<version>/` yet, run `./gradlew publishToMavenLocal` in this repo directly — no need to confirm.
+Use the Gradle composite build for local cross-repo work, not `publishToMavenLocal`. The template's `settings.gradle.kts` already has `includeBuild("../kotlin-saas-starter")` (conditional on the path existing), so Gradle substitutes the local starter source automatically.
 
-**Why:** the starter isn't on GitHub Packages yet. Until it is, `publishToMavenLocal` is the bridge. The user explicitly authorized this on 2026-05-08 ("feel free to publish to maven local in the sibling repo yourself when needed").
+**Why:** `publishToMavenLocal` is deprecated as the local dev workflow. The composite build is set up as of the `77de1bc` commit on the template (2026-05-14). The user confirmed this is the correct approach.
 
 **How to apply:**
-- Trigger on Gradle errors like `Could not find org.granchi:kotlin-saas-starter:<v>` when building the template against a fresh starter version.
-- After publishing, re-run the failing template task.
-- This authorization is for `publishToMavenLocal` only — don't push the starter to GitHub Packages or run other release tasks (release-please, publishing to remote) without asking.
+- When plan steps say "publishToMavenLocal -Pversion=X-SNAPSHOT", skip them — the composite build makes version bumps unnecessary for local testing.
+- Don't bump `libs.versions.toml` in the template to a SNAPSHOT version either; the composite build ignores the declared version and uses local source directly.
+- Only bump the template's `libs.versions.toml` to a released version (e.g. `0.3.0`) after release-please has published the artifact to GitHub Packages — and only when the user asks to do so.
