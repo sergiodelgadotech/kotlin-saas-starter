@@ -1,10 +1,12 @@
 package org.granchi.saasstarter.autoconfigure
 
 import org.springframework.boot.autoconfigure.AutoConfiguration
+import org.springframework.boot.autoconfigure.AutoConfigureAfter
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.session.SessionRepository
@@ -17,8 +19,12 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
  * Disabled if either:
  * - `saasstarter.session.enabled=false`, or
  * - the consumer defines its own [SessionRepository] bean.
+ *
+ * Runs after [RedisAutoConfiguration] so the [RedisConnectionFactory] bean is
+ * available when [EnableRedisSessionConfig]'s [ConditionalOnBean] is evaluated.
  */
 @AutoConfiguration
+@AutoConfigureAfter(RedisAutoConfiguration::class)
 @ConditionalOnClass(EnableRedisHttpSession::class)
 @ConditionalOnProperty(
     prefix = "saasstarter.session",
