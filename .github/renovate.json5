@@ -1,65 +1,53 @@
 {
-  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
   extends: [
-    "config:recommended",
+    'config:recommended',
   ],
-
-  // Daily run before 6 AM UTC — catches updates quickly without daytime noise.
-  schedule: ["before 6am every day"],
-  timezone: "UTC",
-
-  // chore(deps): by default so Renovate PRs don't trigger release-please bumps.
-  // Security PRs override this to fix(deps): below, which does create a patch release.
-  semanticCommits: "enabled",
-  semanticCommitType: "chore",
-  semanticCommitScope: "deps",
-
-  // No auto-merge — library changes need a human eye regardless of CI outcome.
+  schedule: [
+    'before 6am',
+  ],
+  timezone: 'UTC',
+  semanticCommits: 'enabled',
+  semanticCommitType: 'chore',
+  semanticCommitScope: 'deps',
   automerge: false,
-
   packageRules: [
-    // Group all minor + patch updates into one PR per run to reduce noise.
     {
-      matchUpdateTypes: ["minor", "patch"],
-      groupName: "all non-major dependencies",
-      groupSlug: "all-non-major",
+      matchUpdateTypes: [
+        'minor',
+        'patch',
+      ],
+      groupName: 'all non-major dependencies',
+      groupSlug: 'all-non-major',
     },
-
-    // Major updates always get individual PRs so the diff is easy to review.
     {
-      matchUpdateTypes: ["major"],
+      matchUpdateTypes: [
+        'major',
+      ],
       groupName: null,
     },
-
-    // Spring ecosystem majors are grouped: Boot, Framework, Security, Data,
-    // Session, JobRunr Spring Boot starter, and Kotlin move together.
-    // A solo Spring Boot 4.x PR can't merge without the others, so grouping
-    // makes the coordination requirement visible in a single PR.
     {
-      matchPackagePatterns: [
-        "^org\\.springframework",
-        "^org\\.jobrunr:jobrunr-spring-boot-.*-starter$",
-        "^org\\.jetbrains\\.kotlin",
+      matchUpdateTypes: [
+        'major',
       ],
-      matchUpdateTypes: ["major"],
-      groupName: "Spring ecosystem (major)",
+      groupName: 'Spring ecosystem (major)',
+      matchPackageNames: [
+        '/^org\\.springframework/',
+        '/^org\\.jobrunr:jobrunr-spring-boot-.*-starter$/',
+        '/^org\\.jetbrains\\.kotlin/',
+      ],
     },
-
-    // Gradle wrapper gets its own PR — it's infra, not a library dep.
     {
-      matchManagers: ["gradle-wrapper"],
-      groupName: "Gradle wrapper",
+      matchManagers: [
+        'gradle-wrapper',
+      ],
+      groupName: 'Gradle wrapper',
     },
-
-    // Spring Boot versions are compileOnly here; consumers supply the runtime.
-    // Still keep them updated so we compile against a recent API surface.
-    // No special treatment needed beyond the default grouping above.
-
-    // Security vulnerabilities: override to fix(deps): so they surface as
-    // patch releases and are clearly marked in the changelog.
     {
-      matchCategories: ["security"],
-      semanticCommitType: "fix",
+      matchCategories: [
+        'security',
+      ],
+      semanticCommitType: 'fix',
       groupName: null,
       automerge: false,
     },
