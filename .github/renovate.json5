@@ -31,6 +31,20 @@
       groupName: null,
     },
 
+    // Spring ecosystem majors are grouped: Boot, Framework, Security, Data,
+    // Session, JobRunr Spring Boot starter, and Kotlin move together.
+    // A solo Spring Boot 4.x PR can't merge without the others, so grouping
+    // makes the coordination requirement visible in a single PR.
+    {
+      matchPackagePatterns: [
+        "^org\\.springframework",
+        "^org\\.jobrunr:jobrunr-spring-boot-.*-starter$",
+        "^org\\.jetbrains\\.kotlin",
+      ],
+      matchUpdateTypes: ["major"],
+      groupName: "Spring ecosystem (major)",
+    },
+
     // Gradle wrapper gets its own PR — it's infra, not a library dep.
     {
       matchManagers: ["gradle-wrapper"],
