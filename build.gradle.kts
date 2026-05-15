@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.spring)
+    alias(libs.plugins.mokkery)
     alias(libs.plugins.spring.dep)
     `java-library`
     `maven-publish`

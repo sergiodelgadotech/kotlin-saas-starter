@@ -6,6 +6,7 @@ auth0-jwt         = "4.4.0"
 auth0-jwks        = "0.22.1"
 jobrunr           = "7.3.1"
 konform           = "0.11.1"
+mokkery           = "2.5.1"
 strikt            = "0.35.1"
 testcontainers    = "1.20.4"
 
@@ -29,4 +30,5 @@ testcontainers-junit          = { module = "org.testcontainers:junit-jupiter", v
 [plugins]
 kotlin-jvm    = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+mokkery       = { id = "dev.mokkery", version.ref = "mokkery" }
 spring-dep    = { id = "io.spring.dependency-management", version.ref = "spring-dep" }
