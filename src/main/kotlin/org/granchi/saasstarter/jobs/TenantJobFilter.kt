@@ -5,7 +5,6 @@ import org.jobrunr.jobs.AbstractJob
 import org.jobrunr.jobs.Job
 import org.jobrunr.jobs.filters.JobClientFilter
 import org.jobrunr.jobs.filters.JobServerFilter
-import org.springframework.stereotype.Component
 import java.util.UUID
 
 /**
@@ -19,7 +18,6 @@ import java.util.UUID
  * Note: a single job may carry at most one tenant label. JobRunr caps a
  * job's labels at 3 × 45 chars; `tenant:` + a UUID is 43 chars and fits.
  */
-@Component
 class TenantJobFilter : JobClientFilter, JobServerFilter {
 
     override fun onCreating(job: AbstractJob) {

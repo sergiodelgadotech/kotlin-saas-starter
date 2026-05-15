@@ -1,2 +1,3 @@
 org.granchi.saasstarter.autoconfigure.SaasStarterAutoConfiguration
 org.granchi.saasstarter.autoconfigure.SessionAutoConfiguration
+org.granchi.saasstarter.autoconfigure.JobRunrAutoConfiguration

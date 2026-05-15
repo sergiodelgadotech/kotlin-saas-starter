@@ -3,7 +3,6 @@ package org.granchi.saasstarter.jobs
 import org.granchi.saasstarter.tenant.TenantContext
 import org.jobrunr.jobs.lambdas.JobLambda
 import org.jobrunr.scheduling.JobScheduler
-import org.springframework.stereotype.Service
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
@@ -21,7 +20,6 @@ import java.util.UUID
  * jobSchedulerService.schedule(Instant.now().plusSeconds(60)) { reminderService.send(userId) }
  * ```
  */
-@Service
 class JobSchedulerService(private val jobScheduler: JobScheduler) {
 
     fun enqueue(job: JobLambda): UUID =
