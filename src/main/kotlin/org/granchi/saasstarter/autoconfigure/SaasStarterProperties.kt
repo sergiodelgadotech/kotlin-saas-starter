@@ -11,8 +11,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class SaasStarterProperties(
     val enabled: Boolean = true,
     val session: Session = Session(),
+    val jobs: Jobs = Jobs(),
 ) {
     data class Session(
+        val enabled: Boolean = true,
+    )
+
+    data class Jobs(
         val enabled: Boolean = true,
     )
 }

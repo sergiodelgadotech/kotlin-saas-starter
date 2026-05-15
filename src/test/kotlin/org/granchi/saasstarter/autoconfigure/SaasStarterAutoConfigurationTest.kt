@@ -52,4 +52,19 @@ class SaasStarterAutoConfigurationTest {
                 expectThat(props.session.enabled).isFalse()
             }
     }
+
+    @Test
+    fun `jobs enabled defaults to true and binds via saasstarter jobs enabled`() {
+        contextRunner.run { context ->
+            val props = context.getBean(SaasStarterProperties::class.java)
+            expectThat(props.jobs.enabled).isTrue()
+        }
+
+        contextRunner
+            .withPropertyValues("saasstarter.jobs.enabled=false")
+            .run { context ->
+                val props = context.getBean(SaasStarterProperties::class.java)
+                expectThat(props.jobs.enabled).isFalse()
+            }
+    }
 }
