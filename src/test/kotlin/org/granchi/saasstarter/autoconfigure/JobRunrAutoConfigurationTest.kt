@@ -1,6 +1,9 @@
 package org.granchi.saasstarter.autoconfigure
 
+import dev.mokkery.mock
 import org.granchi.saasstarter.jobs.TenantJobFilter
+import org.jobrunr.scheduling.JobScheduler
+import org.jobrunr.storage.StorageProvider
 import org.junit.jupiter.api.Test
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
@@ -11,6 +14,7 @@ class JobRunrAutoConfigurationTest {
 
     private val contextRunner = ApplicationContextRunner()
         .withConfiguration(AutoConfigurations.of(JobRunrAutoConfiguration::class.java))
+        .withBean(JobScheduler::class.java, { mock<JobScheduler>() })
 
     @Test
     fun `tenant job filter bean is registered when enabled`() {
@@ -37,6 +41,17 @@ class JobRunrAutoConfigurationTest {
             .run { context ->
                 val filters = context.getBeansOfType(TenantJobFilter::class.java)
                 expectThat(filters).hasSize(1)
+            }
+    }
+
+    @Test
+    fun `job scheduler is registered with tenant filter when no prior scheduler exists`() {
+        ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(JobRunrAutoConfiguration::class.java))
+            .withBean(StorageProvider::class.java, { mock<StorageProvider>() })
+            .run { context ->
+                expectThat(context.getBeansOfType(JobScheduler::class.java)).hasSize(1)
+                expectThat(context.getBeansOfType(TenantJobFilter::class.java)).hasSize(1)
             }
     }
 }
