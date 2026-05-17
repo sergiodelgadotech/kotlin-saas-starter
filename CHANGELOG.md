@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.0](https://github.com/sergiodelgadotech/kotlin-saas-starter/compare/v0.3.0...v0.4.0) (2026-05-17)
+
+
+### Features
+
+* add JobRunrAutoConfiguration with tenant filter and scheduler beans ([7b8b428](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/7b8b428d24dbfc901f4e4dd34a9e6e533acdeed1))
+* add jobs group to SaasStarterProperties ([f9d93a1](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/f9d93a13ad2dd637ee18bf57163164557b8c868b))
+
+
+### Bug Fixes
+
+* **jobs:** wire TenantJobFilter into JobScheduler and BackgroundJobServer ([914ab05](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/914ab054576c78950e457c2766a1a3db0bab8aa5))
+
+
+### Documentation
+
+* **memory:** update feedback — composite build replaces publishToMavenLocal ([085fedf](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/085fedf3d09ba98a2bd8be41dd3ede4379469eda))
+
 ## [0.3.0](https://github.com/SergioDelgado-tech/kotlin-saas-starter/compare/v0.2.1...v0.3.0) (2026-05-14)
 
 
