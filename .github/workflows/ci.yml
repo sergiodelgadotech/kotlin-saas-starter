@@ -53,3 +53,39 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew publish
+
+  publish-snapshot:
+    needs: [test, release-please]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Determine snapshot version
+        id: version
+        run: |
+          BRANCH="release-please--branches--main--components--kotlin-saas-starter"
+          git fetch origin "$BRANCH" 2>/dev/null || true
+          NEXT=$(git show "origin/$BRANCH:gradle.properties" 2>/dev/null \
+                 | grep -m1 '^version=' | cut -d= -f2)
+          if [ -z "$NEXT" ]; then
+            # No release-please branch open (e.g. right after a release with no new feat/fix).
+            # Fall back to the current released version — it'll be overwritten once new
+            # qualifying commits land and release-please opens a fresh PR.
+            NEXT=$(grep -m1 '^version=' gradle.properties | cut -d= -f2)
+          fi
+          echo "snapshot=${NEXT}-SNAPSHOT" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Publish SNAPSHOT to GitHub Packages
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SNAPSHOT_VERSION: ${{ steps.version.outputs.snapshot }}
+        run: |
+          echo "Publishing $SNAPSHOT_VERSION"
+          ./gradlew publish -Pversion="$SNAPSHOT_VERSION"
