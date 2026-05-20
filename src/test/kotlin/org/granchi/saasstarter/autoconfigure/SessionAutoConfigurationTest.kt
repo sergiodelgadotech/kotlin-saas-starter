@@ -1,8 +1,10 @@
 package org.granchi.saasstarter.autoconfigure
 
+import dev.mokkery.mock
 import org.junit.jupiter.api.Test
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
+import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.session.SessionRepository
 import strikt.api.expectThat
 import strikt.assertions.hasSize
@@ -10,11 +12,8 @@ import strikt.assertions.hasSize
 class SessionAutoConfigurationTest {
 
     private val contextRunner = ApplicationContextRunner()
-        .withConfiguration(
-            AutoConfigurations.of(
-                SessionAutoConfiguration::class.java,
-            )
-        )
+        .withConfiguration(AutoConfigurations.of(SessionAutoConfiguration::class.java))
+        .withBean(RedisConnectionFactory::class.java, { mock<RedisConnectionFactory>() })
 
     @Test
     fun `autoconfig is loaded when session enabled defaults to true`() {
