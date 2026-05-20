@@ -56,7 +56,13 @@ jobs:
 
   publish-snapshot:
     needs: [test, release-please]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # Skip on release runs — the publish job handles those. Publishing a snapshot
+    # on a release push is wrong because the release-please branch is deleted at
+    # that point, so the version fallback would emit {released-version}-SNAPSHOT.
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' &&
+      needs.release-please.outputs.release_created != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -70,18 +76,16 @@ jobs:
           NEXT=$(git show "origin/$BRANCH:gradle.properties" 2>/dev/null \
                  | grep -m1 '^version=' | cut -d= -f2)
           if [ -z "$NEXT" ]; then
-            # No release-please branch open (e.g. right after a release with no new feat/fix).
-            # Fall back to the current released version — it'll be overwritten once new
-            # qualifying commits land and release-please opens a fresh PR.
-            NEXT=$(grep -m1 '^version=' gradle.properties | cut -d= -f2)
+            echo "No release-please branch open — will skip snapshot publish."
           fi
-          echo "snapshot=${NEXT}-SNAPSHOT" >> "$GITHUB_OUTPUT"
+          echo "snapshot=${NEXT:+${NEXT}-SNAPSHOT}" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: temurin
       - uses: gradle/actions/setup-gradle@v4
       - name: Publish SNAPSHOT to GitHub Packages
+        if: steps.version.outputs.snapshot != ''
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
