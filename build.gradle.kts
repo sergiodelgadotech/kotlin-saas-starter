@@ -70,6 +70,14 @@ tasks.test {
 
 // ── Publishing to GitHub Packages ─────────────────────────────────────────────
 
+tasks.withType<PublishToMavenRepository>().configureEach {
+    doFirst {
+        check(System.getenv("GITHUB_ACTIONS") == "true") {
+            "Publishing to GitHub Packages must go through the release-please CI workflow, not `./gradlew publish` locally."
+        }
+    }
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
