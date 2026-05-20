@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.5.0](https://github.com/sergiodelgadotech/kotlin-saas-starter/compare/v0.4.0...v0.5.0) (2026-05-20)
+
+
+### Features
+
+* add cache group to SaasStarterProperties ([13b8039](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/13b8039c8a73a921fbcc523fe24e7e49b0920318))
+* add RedisAutoConfiguration with property-driven cache layout ([0bafa09](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/0bafa09b578a3da43b5da574736a1cecf380767a))
+
+
+### Bug Fixes
+
+* remove @ConditionalOnBean from EnableRedisSessionConfig ([c81b0f2](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/c81b0f210f065e0719aa7ba7c2e0e1cadb8b6869)), closes [#28](https://github.com/sergiodelgadotech/kotlin-saas-starter/issues/28)
+* remove BeansConfig ConditionalOnBean and rename template bean to jsonRedisTemplate ([36ece66](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/36ece66dd7d3262f6306e225cb2dfc4acd15969e))
+
+
+### Documentation
+
+* add design spec for issue [#28](https://github.com/sergiodelgadotech/kotlin-saas-starter/issues/28) SessionAutoConfiguration fix ([c5ecc6e](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/c5ecc6e398a92559d58005e498cfe8d6a396db41))
+* add project analysis and suggestions ([6be4642](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/6be4642c3b4ac029f45f45cdbb81ae7926c23a2c))
+* record autoconfig inner-class pattern gotcha in memory ([7761d9f](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/7761d9f71466a4ca896b1a94d092efde7c6326c7))
+
 ## [0.4.0](https://github.com/sergiodelgadotech/kotlin-saas-starter/compare/v0.3.0...v0.4.0) (2026-05-17)
 
 
