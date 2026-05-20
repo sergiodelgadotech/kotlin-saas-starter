@@ -4,9 +4,12 @@ import org.junit.jupiter.api.Test
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import strikt.api.expectThat
+import strikt.assertions.containsKey
 import strikt.assertions.hasSize
+import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
+import java.time.Duration
 
 class SaasStarterAutoConfigurationTest {
 
@@ -65,6 +68,25 @@ class SaasStarterAutoConfigurationTest {
             .run { context ->
                 val props = context.getBean(SaasStarterProperties::class.java)
                 expectThat(props.jobs.enabled).isFalse()
+            }
+    }
+
+    @Test
+    fun `cache configurations bind via saasstarter cache configurations`() {
+        contextRunner
+            .withPropertyValues(
+                "saasstarter.cache.default-ttl=10m",
+                "saasstarter.cache.configurations.tenant-by-user.ttl=5m",
+                "saasstarter.cache.configurations.organization.ttl=30m",
+            )
+            .run { context ->
+                val props = context.getBean(SaasStarterProperties::class.java)
+                expectThat(props.cache.defaultTtl).isEqualTo(Duration.ofMinutes(10))
+                expectThat(props.cache.configurations).containsKey("tenant-by-user")
+                expectThat(props.cache.configurations["tenant-by-user"]!!.ttl)
+                    .isEqualTo(Duration.ofMinutes(5))
+                expectThat(props.cache.configurations["organization"]!!.ttl)
+                    .isEqualTo(Duration.ofMinutes(30))
             }
     }
 }
