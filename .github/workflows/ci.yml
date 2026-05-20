@@ -53,6 +53,24 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew publish
+      - name: Delete corresponding SNAPSHOT from GitHub Packages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(grep -m1 '^version=' gradle.properties | cut -d= -f2)
+          SNAPSHOT="${VERSION}-SNAPSHOT"
+          echo "Looking for $SNAPSHOT to clean up..."
+          VERSION_ID=$(gh api \
+            /orgs/sergiodelgadotech/packages/maven/org.granchi.kotlin-saas-starter/versions \
+            --jq ".[] | select(.name == \"$SNAPSHOT\") | .id" 2>/dev/null || true)
+          if [ -n "$VERSION_ID" ]; then
+            echo "Deleting $SNAPSHOT (id: $VERSION_ID)"
+            gh api --method DELETE \
+              "/orgs/sergiodelgadotech/packages/maven/org.granchi.kotlin-saas-starter/versions/$VERSION_ID"
+            echo "Deleted."
+          else
+            echo "$SNAPSHOT not found — nothing to delete."
+          fi
 
   publish-snapshot:
     needs: [test, release-please]
