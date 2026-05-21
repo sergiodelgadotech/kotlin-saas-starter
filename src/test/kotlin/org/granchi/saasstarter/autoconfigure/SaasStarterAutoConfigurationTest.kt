@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import strikt.api.expectThat
+import strikt.assertions.containsExactly
 import strikt.assertions.containsKey
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
@@ -87,6 +88,22 @@ class SaasStarterAutoConfigurationTest {
                     .isEqualTo(Duration.ofMinutes(5))
                 expectThat(props.cache.configurations["organization"]!!.ttl)
                     .isEqualTo(Duration.ofMinutes(30))
+            }
+    }
+
+    @Test
+    fun `tenant and rate-limit path patterns bind from properties`() {
+        contextRunner
+            .withPropertyValues(
+                "saasstarter.tenant.path-patterns=/app/**,/dashboard/**",
+                "saasstarter.tenant.exclude-path-patterns=/webhooks/**,/",
+                "saasstarter.rate-limit.path-patterns=/webhooks/**",
+            )
+            .run { context ->
+                val props = context.getBean(SaasStarterProperties::class.java)
+                expectThat(props.tenant.pathPatterns).containsExactly("/app/**", "/dashboard/**")
+                expectThat(props.tenant.excludePathPatterns).containsExactly("/webhooks/**", "/")
+                expectThat(props.rateLimit.pathPatterns).containsExactly("/webhooks/**")
             }
     }
 }

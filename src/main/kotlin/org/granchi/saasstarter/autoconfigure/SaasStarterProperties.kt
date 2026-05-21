@@ -14,6 +14,8 @@ data class SaasStarterProperties(
     val session: Session = Session(),
     val jobs: Jobs = Jobs(),
     val cache: Cache = Cache(),
+    val tenant: Tenant = Tenant(),
+    val rateLimit: RateLimit = RateLimit(),
 ) {
     data class Session(
         val enabled: Boolean = true,
@@ -32,4 +34,15 @@ data class SaasStarterProperties(
             val ttl: Duration? = null,
         )
     }
+
+    data class Tenant(
+        val enabled: Boolean = true,
+        val pathPatterns: List<String> = emptyList(),
+        val excludePathPatterns: List<String> = emptyList(),
+    )
+
+    data class RateLimit(
+        val enabled: Boolean = true,
+        val pathPatterns: List<String> = emptyList(),
+    )
 }
