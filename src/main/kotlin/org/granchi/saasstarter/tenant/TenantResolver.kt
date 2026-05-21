@@ -20,6 +20,6 @@ import java.util.UUID
  * }
  * ```
  */
-interface TenantResolver {
+fun interface TenantResolver {
     fun resolveTenantId(userId: String): UUID?
 }

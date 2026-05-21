@@ -2,3 +2,4 @@ org.granchi.saasstarter.autoconfigure.SaasStarterAutoConfiguration
 org.granchi.saasstarter.autoconfigure.SessionAutoConfiguration
 org.granchi.saasstarter.autoconfigure.JobRunrAutoConfiguration
 org.granchi.saasstarter.autoconfigure.RedisAutoConfiguration
+org.granchi.saasstarter.autoconfigure.WebMvcAutoConfiguration

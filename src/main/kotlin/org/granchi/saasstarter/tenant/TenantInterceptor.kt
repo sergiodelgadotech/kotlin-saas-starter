@@ -3,10 +3,8 @@ package org.granchi.saasstarter.tenant
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.granchi.saasstarter.security.JwtAuthFilter
-import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerInterceptor
 
-@Component
 class TenantInterceptor(
     private val tenantResolver: TenantResolver
 ) : HandlerInterceptor {

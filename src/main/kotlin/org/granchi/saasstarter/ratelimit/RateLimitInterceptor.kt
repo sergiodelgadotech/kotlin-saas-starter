@@ -3,11 +3,9 @@ package org.granchi.saasstarter.ratelimit
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus
-import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerInterceptor
 import java.time.Duration
 
-@Component
 class RateLimitInterceptor(private val rateLimiter: RateLimiter) : HandlerInterceptor {
 
     override fun preHandle(

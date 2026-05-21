@@ -1,7 +1,6 @@
 package org.granchi.saasstarter.ratelimit
 
 import org.springframework.data.redis.core.RedisTemplate
-import org.springframework.stereotype.Service
 import java.time.Duration
 
 /**
@@ -14,7 +13,6 @@ import java.time.Duration
  *   3. If under limit, add current timestamp and allow
  *   4. Otherwise, deny
  */
-@Service
 class RateLimiter(private val redisTemplate: RedisTemplate<String, Any>) {
 
     /**
