@@ -1,6 +1,6 @@
 package org.granchi.saasstarter.autoconfigure
 
-import dev.mokkery.mock
+import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
@@ -18,7 +18,7 @@ class RedisAutoConfigurationTest {
 
     private val contextRunner = ApplicationContextRunner()
         .withConfiguration(AutoConfigurations.of(RedisAutoConfiguration::class.java))
-        .withBean(RedisConnectionFactory::class.java, { mock<RedisConnectionFactory>() })
+        .withBean(RedisConnectionFactory::class.java, { mockk<RedisConnectionFactory>() })
 
     @Test
     fun `RedisTemplate is registered with String key and JSON value serializers`() {

@@ -1,12 +1,11 @@
 [versions]
-kotlin            = "2.0.21"
+kotlin            = "2.3.21"
 spring-boot       = "3.4.1"
-spring-dep        = "1.1.7"
 auth0-jwt         = "4.4.0"
 auth0-jwks        = "0.22.1"
 jobrunr           = "7.3.1"
 konform           = "0.11.1"
-mokkery           = "2.5.1"
+mockk             = "1.14.9"
 strikt            = "0.35.1"
 testcontainers    = "1.20.4"
 
@@ -23,12 +22,12 @@ auth0-jwt                     = { module = "com.auth0:java-jwt", version.ref = "
 auth0-jwks                    = { module = "com.auth0:jwks-rsa", version.ref = "auth0-jwks" }
 jobrunr-spring                = { module = "org.jobrunr:jobrunr-spring-boot-3-starter", version.ref = "jobrunr" }
 konform                       = { module = "io.konform:konform-jvm", version.ref = "konform" }
+mockk                         = { module = "io.mockk:mockk", version.ref = "mockk" }
 strikt-core                   = { module = "io.strikt:strikt-core", version.ref = "strikt" }
+spring-boot-bom               = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 junit-platform-launcher       = { module = "org.junit.platform:junit-platform-launcher" }
 testcontainers-junit          = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
 
 [plugins]
 kotlin-jvm    = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
-mokkery       = { id = "dev.mokkery", version.ref = "mokkery" }
-spring-dep    = { id = "io.spring.dependency-management", version.ref = "spring-dep" }

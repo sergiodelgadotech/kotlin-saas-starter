@@ -1,8 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.spring)
-    alias(libs.plugins.mokkery)
-    alias(libs.plugins.spring.dep)
     `java-library`
     `maven-publish`
 }
@@ -17,15 +15,10 @@ kotlin {
     }
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.boot:spring-boot-dependencies:3.4.1")
-    }
-}
-
 dependencies {
     // Spring Boot — declared as `compileOnly` so consumers bring their own
     // version. They pick the Spring Boot version, we just use its APIs.
+    compileOnly(platform(libs.spring.boot.bom))
     compileOnly(libs.spring.boot.starter)
     compileOnly(libs.spring.boot.autoconfigure)
     compileOnly(libs.spring.boot.web)
@@ -43,6 +36,7 @@ dependencies {
     api(libs.konform)
 
     // Tests
+    testImplementation(platform(libs.spring.boot.bom))
     testImplementation(libs.spring.boot.starter)
     testImplementation(libs.spring.boot.autoconfigure)
     testImplementation(libs.spring.boot.web)
@@ -52,6 +46,7 @@ dependencies {
     testImplementation(libs.spring.session.redis)
     testImplementation(libs.jobrunr.spring)
     testImplementation(libs.spring.boot.test)
+    testImplementation(libs.mockk)
     testImplementation(libs.strikt.core)
     testImplementation(libs.testcontainers.junit)
 
