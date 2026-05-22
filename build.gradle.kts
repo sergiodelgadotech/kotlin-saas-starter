@@ -51,6 +51,11 @@ dependencies {
     testImplementation(libs.mockk)
     testImplementation(libs.strikt.core)
     testImplementation(libs.testcontainers.junit)
+    testImplementation(libs.flyway.core)
+    testImplementation(libs.flyway.postgres)
+    testImplementation(libs.postgresql)
+    testImplementation(libs.testcontainers.postgres)
+    testImplementation(libs.spring.boot.testcontainers)
 
     // Gradle 9's useJUnitPlatform() no longer auto-adds the launcher.
     testRuntimeOnly(libs.junit.platform.launcher)
