@@ -1,5 +1,7 @@
 package org.granchi.saasstarter.autoconfigure
 
+import org.granchi.saasstarter.lock.RedisLockService
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigureAfter
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
@@ -58,6 +60,14 @@ class RedisAutoConfiguration {
                 hashKeySerializer = StringRedisSerializer()
                 hashValueSerializer = GenericJackson2JsonRedisSerializer()
             }
+
+        @Bean
+        @ConditionalOnMissingBean
+        fun redisLockService(
+            @Qualifier("jsonRedisTemplate")
+            @Suppress("UNCHECKED_CAST")
+            redisTemplate: RedisTemplate<String, Any>,
+        ): RedisLockService = RedisLockService(redisTemplate)
 
         @Bean
         @ConditionalOnMissingBean

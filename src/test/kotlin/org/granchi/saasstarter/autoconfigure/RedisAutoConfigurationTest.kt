@@ -2,6 +2,7 @@ package org.granchi.saasstarter.autoconfigure
 
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
+import org.granchi.saasstarter.lock.RedisLockService
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import org.springframework.data.redis.cache.RedisCacheManager
@@ -58,5 +59,12 @@ class RedisAutoConfigurationTest {
             .run { context ->
                 expectThat(context.getBeansOfType(RedisCacheManager::class.java)).hasSize(0)
             }
+    }
+
+    @Test
+    fun `RedisLockService is registered as a bean`() {
+        contextRunner.run { context ->
+            expectThat(context.getBeansOfType(RedisLockService::class.java)).hasSize(1)
+        }
     }
 }

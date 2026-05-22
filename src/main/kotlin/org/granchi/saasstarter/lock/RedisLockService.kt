@@ -2,7 +2,6 @@ package org.granchi.saasstarter.lock
 
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.RedisTemplate
-import org.springframework.stereotype.Service
 import java.time.Duration
 import java.util.UUID
 
@@ -14,7 +13,6 @@ import java.util.UUID
  * - Processing a webhook that must run exactly once
  * - Provisioning resources on first login
  */
-@Service
 class RedisLockService(private val redisTemplate: RedisTemplate<String, Any>) {
 
     private val log = LoggerFactory.getLogger(javaClass)
