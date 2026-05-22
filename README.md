@@ -1,5 +1,11 @@
 # kotlin-saas-starter
 
+[![CI](https://github.com/sergiodelgadotech/kotlin-saas-starter/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sergiodelgadotech/kotlin-saas-starter/actions/workflows/ci.yml) [![stable](https://img.shields.io/github/v/release/sergiodelgadotech/kotlin-saas-starter?label=stable&color=blue)](https://github.com/sergiodelgadotech/kotlin-saas-starter/releases/latest) [![snapshot](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsergiodelgadotech%2Fkotlin-saas-starter%2Frelease-please--branches--main--components--kotlin-saas-starter%2Fgradle.properties&search=version%3D%28.*%29&replace=%241-SNAPSHOT&label=snapshot&color=orange)](https://github.com/orgs/sergiodelgadotech/packages?repo_name=kotlin-saas-starter)
+<!-- Snapshot badge reads gradle.properties from the release-please PR branch
+     (release-please--branches--main--components--kotlin-saas-starter). If that branch
+     doesn't exist (brief window after a release before the next conventional commit),
+     the badge renders an error. Update the URL if release-please's branch naming changes. -->
+
 Opinionated transversal library for B2B SaaS products built in Kotlin + Spring Boot.
 
 This library captures the infrastructure code that every SaaS repeats — multitenancy, auth, distributed locks, rate limiting, async jobs, validation — so that consuming applications can focus on their domain.
