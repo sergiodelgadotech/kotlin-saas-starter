@@ -25,9 +25,8 @@ data class Organization(
 ) : Persistable<UUID> {
     /**
      * Tracks whether this instance has been persisted. Starts as true (INSERT on first save).
-     * Spring Data JDBC calls AfterConvertCallback or @PostLoad to flip this — but since
-     * we use @Transient as a body property (not a constructor param), it defaults to true
-     * for freshly constructed instances and must be set to false via [markPersisted] after loading.
+     * `AfterConvertCallback` flips this to false after every DB load, so that subsequent
+     * saves on a loaded entity are treated as UPDATE rather than INSERT.
      */
     @Transient
     @JvmField

@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.context.annotation.Bean
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.transaction.annotation.Transactional
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -19,6 +20,7 @@ import strikt.assertions.isNotNull
 
 @Tag("integration")
 @Testcontainers
+@Transactional
 @SpringBootTest(
     classes = [OrganizationServiceIntegrationTest.TestApp::class],
     properties = [

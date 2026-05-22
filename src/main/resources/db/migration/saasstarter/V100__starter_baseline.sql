@@ -18,5 +18,5 @@ CREATE TABLE members (
 );
 
 -- Critical: hit on every authenticated request via MemberRepository.findOrganizationIdByUserId
-CREATE INDEX idx_members_external_user_id ON members(external_user_id);
+-- Note: no explicit index needed for external_user_id; the UNIQUE constraint above already creates one.
 CREATE INDEX idx_members_organization_id  ON members(organization_id);
