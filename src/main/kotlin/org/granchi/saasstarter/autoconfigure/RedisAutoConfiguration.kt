@@ -51,7 +51,7 @@ class RedisAutoConfiguration {
     class BeansConfig {
 
         @Bean("jsonRedisTemplate")
-        @ConditionalOnMissingBean
+        @ConditionalOnMissingBean(name = ["jsonRedisTemplate"])
         fun jsonRedisTemplate(factory: RedisConnectionFactory): RedisTemplate<String, Any> =
             RedisTemplate<String, Any>().apply {
                 connectionFactory = factory
