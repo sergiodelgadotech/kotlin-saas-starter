@@ -11,7 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
-import java.net.URL
+import java.net.URI
 import java.security.interfaces.RSAPublicKey
 
 /**
@@ -61,7 +61,7 @@ class JwtAuthFilter : OncePerRequestFilter() {
             ?.substring(7)
 
     private fun validateAndExtractUserId(token: String): String? = try {
-        val jwkProvider = UrlJwkProvider(URL(jwksUrl))
+        val jwkProvider = UrlJwkProvider(URI.create(jwksUrl).toURL())
         val jwt = JWT.decode(token)
         val jwk = jwkProvider.get(jwt.keyId)
         val algorithm = Algorithm.RSA256(jwk.publicKey as RSAPublicKey, null)
