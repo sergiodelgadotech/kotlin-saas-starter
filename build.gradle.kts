@@ -9,7 +9,7 @@ group = "org.granchi"
 version = providers.gradleProperty("version").getOrElse("0.1.0-SNAPSHOT")
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict")
     }

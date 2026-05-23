@@ -64,3 +64,26 @@ repositories {
     // ...
 }
 ```
+
+## Dev container (VS Code, Cursor, JetBrains Gateway)
+
+A `.devcontainer/devcontainer.json` is included so you can develop inside a pre-configured container with JDK 25, Gradle, Docker socket access, and the Claude Code CLI — no manual setup required.
+
+### Prerequisites
+
+- **Docker Desktop** (macOS / Windows) or **Docker Engine** (Linux)
+- **VS Code** with the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension, **Cursor**, or **JetBrains Gateway**
+- `GITHUB_ACTOR` and `GITHUB_TOKEN` (with `read:packages` scope) set in your shell profile — the container inherits them to authenticate against GitHub Packages
+
+### Opening the container
+
+**VS Code / Cursor:** open the repo folder, then run **Dev Containers: Reopen in Container** from the command palette.
+
+**JetBrains Gateway:** choose **Connect to Dev Container** and select the repo folder.
+
+### Notes
+
+- **`remoteUser` is `vscode`** — this is the image's built-in non-root user, unrelated to the VS Code editor. It works identically with JetBrains Gateway.
+- **Claude Code** is available in the integrated terminal. Run `claude` once to authenticate. Auth state is persisted across container rebuilds via a named Docker volume.
+- **`./gradlew test` works inside the container** — Testcontainers launches Postgres by reaching the host Docker daemon through the mounted socket (`docker-outside-of-docker` feature). No extra Docker Compose setup is needed.
+- **No Spring profile needed** — this is a library; tests are self-contained.
