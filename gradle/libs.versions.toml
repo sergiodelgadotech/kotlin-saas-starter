@@ -10,6 +10,7 @@ strikt            = "0.35.1"
 testcontainers    = "1.20.4"
 flyway            = "11.0.0"
 postgresql        = "42.7.4"
+stripe            = "29.1.0"
 
 [libraries]
 spring-boot-autoconfigure     = { module = "org.springframework.boot:spring-boot-autoconfigure" }
@@ -35,6 +36,7 @@ flyway-postgres               = { module = "org.flywaydb:flyway-database-postgre
 postgresql                    = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 testcontainers-postgres       = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 spring-boot-testcontainers    = { module = "org.springframework.boot:spring-boot-testcontainers" }
+stripe                        = { module = "com.stripe:stripe-java", version.ref = "stripe" }
 
 [plugins]
 kotlin-jvm    = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

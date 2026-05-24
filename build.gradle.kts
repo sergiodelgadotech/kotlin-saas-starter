@@ -36,6 +36,9 @@ dependencies {
     // Konform — exposed in our public API (Validation<T>, DomainValidationException.errors)
     api(libs.konform)
 
+    // Stripe Java SDK — exposed in public API (BillingService, StripeWebhookHandler signatures)
+    api(libs.stripe)
+
     // Tests
     testImplementation(platform(libs.spring.boot.bom))
     testImplementation(libs.spring.boot.starter)
