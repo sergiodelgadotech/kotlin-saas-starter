@@ -68,4 +68,14 @@ class AutoConfigurationImportsTest {
         expectThat(resource!!.readText())
             .contains("org.granchi.saasstarter.autoconfigure.OrganizationAutoConfiguration")
     }
+
+    @Test
+    fun `imports file lists BillingAutoConfiguration`() {
+        val resource = this::class.java.classLoader.getResource(
+            "META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports"
+        )
+        expectThat(resource).isNotNull()
+        expectThat(resource!!.readText())
+            .contains("org.granchi.saasstarter.autoconfigure.BillingAutoConfiguration")
+    }
 }

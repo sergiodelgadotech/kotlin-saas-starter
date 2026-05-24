@@ -5,7 +5,6 @@ import org.granchi.saasstarter.billing.BillingService
 import org.granchi.saasstarter.billing.StripeWebhookHandler
 import org.granchi.saasstarter.billing.SubscriptionRepository
 import org.springframework.boot.autoconfigure.AutoConfiguration
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -14,7 +13,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories
 import jakarta.annotation.PostConstruct
-import javax.sql.DataSource
 
 /**
  * Wires the Stripe-backed billing module.
@@ -50,11 +48,12 @@ class BillingAutoConfiguration(
 
     /**
      * Registers Spring Data JDBC repositories from the starter's billing package.
-     * Gated on [DataSource] so unit tests can supply a mock [SubscriptionRepository]
-     * without conflicting with Spring Data's factory bean registration.
+     * Gated on [ConditionalOnMissingBean] so unit tests (or consumers) can supply their
+     * own [SubscriptionRepository] without conflicting with Spring Data's factory bean
+     * registration — the standard Spring Boot "back-off" pattern.
      */
     @Configuration(proxyBeanMethods = false)
-    @ConditionalOnBean(DataSource::class)
+    @ConditionalOnMissingBean(SubscriptionRepository::class)
     @EnableJdbcRepositories(basePackages = ["org.granchi.saasstarter.billing"])
     class JdbcRepositoryConfig
 
