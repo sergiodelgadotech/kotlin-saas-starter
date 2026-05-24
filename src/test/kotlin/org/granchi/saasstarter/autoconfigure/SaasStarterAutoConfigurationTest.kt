@@ -92,6 +92,27 @@ class SaasStarterAutoConfigurationTest {
     }
 
     @Test
+    fun `billing properties bind from saasstarter billing`() {
+        contextRunner
+            .withPropertyValues(
+                "saasstarter.billing.api-key=sk_test_xyz",
+                "saasstarter.billing.webhook-secret=whsec_xyz",
+                "saasstarter.billing.success-url=https://example.com/billing?ok=1",
+                "saasstarter.billing.cancel-url=https://example.com/billing",
+                "saasstarter.billing.portal-return-url=https://example.com/billing",
+                "saasstarter.billing.plan-prices.STARTER=price_starter",
+                "saasstarter.billing.plan-prices.PRO=price_pro",
+            )
+            .run { context ->
+                val props = context.getBean(SaasStarterProperties::class.java)
+                expectThat(props.billing.apiKey).isEqualTo("sk_test_xyz")
+                expectThat(props.billing.webhookSecret).isEqualTo("whsec_xyz")
+                expectThat(props.billing.planPrices).containsKey("STARTER")
+                expectThat(props.billing.planPrices["PRO"]).isEqualTo("price_pro")
+            }
+    }
+
+    @Test
     fun `tenant and rate-limit path patterns bind from properties`() {
         contextRunner
             .withPropertyValues(

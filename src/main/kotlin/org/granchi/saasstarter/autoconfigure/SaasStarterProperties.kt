@@ -16,6 +16,7 @@ data class SaasStarterProperties(
     val cache: Cache = Cache(),
     val tenant: Tenant = Tenant(),
     val rateLimit: RateLimit = RateLimit(),
+    val billing: Billing = Billing(),
 ) {
     data class Session(
         val enabled: Boolean = true,
@@ -44,5 +45,25 @@ data class SaasStarterProperties(
     data class RateLimit(
         val enabled: Boolean = true,
         val pathPatterns: List<String> = emptyList(),
+    )
+
+    data class Billing(
+        val enabled: Boolean = true,
+        /** Stripe API key (`sk_*`). Set via STRIPE_API_KEY env var typically. */
+        val apiKey: String = "",
+        /** Stripe webhook signing secret (`whsec_*`). */
+        val webhookSecret: String = "",
+        /** URL to send the customer to after successful checkout. */
+        val successUrl: String = "",
+        /** URL to send the customer to if checkout is cancelled. */
+        val cancelUrl: String = "",
+        /** URL to send the customer to after closing the billing portal. */
+        val portalReturnUrl: String = "",
+        /**
+         * Map of plan name (matching [BillingPlan.name]) to Stripe Price ID.
+         * Apps populate this in application.yml; lookup is case-sensitive on
+         * the plan name.
+         */
+        val planPrices: Map<String, String> = emptyMap(),
     )
 }
