@@ -1,5 +1,20 @@
 # Changelog
 
+## [Unreleased]
+
+### Features
+
+* add `SecurityAutoConfiguration`: auto-wires a cached, rate-limited `JwkProvider` and `JwtAuthFilter` (closes #23, #20)
+* add `WebAutoConfiguration`: auto-wires `GlobalExceptionHandler` (closes #23)
+
+### Bug Fixes
+
+* JWKS provider is now cached + rate-limited via `JwkProviderBuilder` instead of being recreated per request (closes #20)
+
+### BREAKING CHANGES
+
+* Property keys `auth.jwks-url` and `auth.issuer` have moved to `saasstarter.security.jwks-url` and `saasstarter.security.issuer`. Update your `application.yml` accordingly.
+
 ## [0.5.0](https://github.com/sergiodelgadotech/kotlin-saas-starter/compare/v0.4.0...v0.5.0) (2026-05-20)
 
 

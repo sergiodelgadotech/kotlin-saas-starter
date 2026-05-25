@@ -17,6 +17,8 @@ data class SaasStarterProperties(
     val tenant: Tenant = Tenant(),
     val rateLimit: RateLimit = RateLimit(),
     val billing: Billing = Billing(),
+    val security: Security = Security(),
+    val web: Web = Web(),
 ) {
     data class Session(
         val enabled: Boolean = true,
@@ -66,4 +68,19 @@ data class SaasStarterProperties(
          */
         val planPrices: Map<String, String> = emptyMap(),
     )
+
+    data class Security(
+        val enabled: Boolean = true,
+        /** Zitadel-style JWKS endpoint URL. Required when security.enabled=true. */
+        val jwksUrl: String = "",
+        /** Expected `iss` claim in JWT tokens. Required when security.enabled=true. */
+        val issuer: String = "",
+    )
+
+    data class Web(
+        val enabled: Boolean = true,
+        val exceptionHandler: ExceptionHandler = ExceptionHandler(),
+    ) {
+        data class ExceptionHandler(val enabled: Boolean = true)
+    }
 }

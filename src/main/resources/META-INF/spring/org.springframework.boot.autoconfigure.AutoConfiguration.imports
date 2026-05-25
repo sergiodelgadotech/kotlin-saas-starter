@@ -5,3 +5,5 @@ org.granchi.saasstarter.autoconfigure.RedisAutoConfiguration
 org.granchi.saasstarter.autoconfigure.WebMvcAutoConfiguration
 org.granchi.saasstarter.autoconfigure.OrganizationAutoConfiguration
 org.granchi.saasstarter.autoconfigure.BillingAutoConfiguration
+org.granchi.saasstarter.autoconfigure.SecurityAutoConfiguration
+org.granchi.saasstarter.autoconfigure.WebAutoConfiguration

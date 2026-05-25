@@ -1,17 +1,14 @@
 package org.granchi.saasstarter.security
 
-import com.auth0.jwk.UrlJwkProvider
+import com.auth0.jwk.JwkProvider
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
-import java.net.URI
 import java.security.interfaces.RSAPublicKey
 
 /**
@@ -23,14 +20,10 @@ import java.security.interfaces.RSAPublicKey
  * The `sub` claim contains the Zitadel user ID, which maps to
  * the `zitadel_user_id` column in the `members` table.
  */
-@Component
-class JwtAuthFilter : OncePerRequestFilter() {
-
-    @Value("\${auth.jwks-url}")
-    private lateinit var jwksUrl: String
-
-    @Value("\${auth.issuer}")
-    private lateinit var issuer: String
+class JwtAuthFilter(
+    private val jwkProvider: JwkProvider,
+    private val issuer: String,
+) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -60,8 +53,7 @@ class JwtAuthFilter : OncePerRequestFilter() {
             ?.takeIf { it.startsWith("Bearer ") }
             ?.substring(7)
 
-    private fun validateAndExtractUserId(token: String): String? = try {
-        val jwkProvider = UrlJwkProvider(URI.create(jwksUrl).toURL())
+    internal fun validateAndExtractUserId(token: String): String? = try {
         val jwt = JWT.decode(token)
         val jwk = jwkProvider.get(jwt.keyId)
         val algorithm = Algorithm.RSA256(jwk.publicKey as RSAPublicKey, null)
