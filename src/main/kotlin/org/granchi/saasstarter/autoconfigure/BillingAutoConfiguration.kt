@@ -2,6 +2,7 @@ package org.granchi.saasstarter.autoconfigure
 
 import com.stripe.Stripe
 import org.granchi.saasstarter.billing.BillingService
+import org.granchi.saasstarter.billing.Subscription
 import org.granchi.saasstarter.billing.StripeWebhookHandler
 import org.granchi.saasstarter.billing.SubscriptionRepository
 import org.springframework.boot.autoconfigure.AutoConfiguration
@@ -12,6 +13,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories
+import org.springframework.data.relational.core.mapping.event.AfterConvertCallback
 import jakarta.annotation.PostConstruct
 
 /**
@@ -69,5 +71,12 @@ class BillingAutoConfiguration(
         @ConditionalOnMissingBean
         fun stripeWebhookHandler(repo: SubscriptionRepository): StripeWebhookHandler =
             StripeWebhookHandler(repo)
+
+        @Bean
+        fun subscriptionAfterConvertCallback(): AfterConvertCallback<Subscription> =
+            AfterConvertCallback { entity ->
+                entity._new = false
+                entity
+            }
     }
 }
