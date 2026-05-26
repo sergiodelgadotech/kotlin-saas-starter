@@ -5,7 +5,7 @@ plugins {
     `maven-publish`
 }
 
-group = "org.granchi"
+group = "tech.sergiodelgado"
 version = providers.gradleProperty("version").getOrElse("0.1.0-SNAPSHOT")
 
 kotlin {
@@ -94,8 +94,8 @@ publishing {
                 url.set("https://github.com/sergiodelgadotech/kotlin-saas-starter")
                 developers {
                     developer {
-                        id.set("granchi")
-                        name.set("Granchi")
+                        id.set("sergiodelgado")
+                        name.set("Sergio Delgado")
                     }
                 }
                 scm {

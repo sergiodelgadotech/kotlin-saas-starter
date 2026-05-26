@@ -61,12 +61,12 @@ jobs:
           SNAPSHOT="${VERSION}-SNAPSHOT"
           echo "Looking for $SNAPSHOT to clean up..."
           VERSION_ID=$(gh api \
-            /orgs/sergiodelgadotech/packages/maven/org.granchi.kotlin-saas-starter/versions \
+            /orgs/sergiodelgadotech/packages/maven/tech.sergiodelgado.kotlin-saas-starter/versions \
             --jq ".[] | select(.name == \"$SNAPSHOT\") | .id" 2>/dev/null || true)
           if [ -n "$VERSION_ID" ]; then
             echo "Deleting $SNAPSHOT (id: $VERSION_ID)"
             gh api --method DELETE \
-              "/orgs/sergiodelgadotech/packages/maven/org.granchi.kotlin-saas-starter/versions/$VERSION_ID"
+              "/orgs/sergiodelgadotech/packages/maven/tech.sergiodelgado.kotlin-saas-starter/versions/$VERSION_ID"
             echo "Deleted."
           else
             echo "$SNAPSHOT not found — nothing to delete."
