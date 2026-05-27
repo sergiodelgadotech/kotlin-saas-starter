@@ -2,11 +2,12 @@ package tech.sergiodelgado.saasstarter.organization
 
 import io.mockk.mockk
 import tech.sergiodelgado.saasstarter.lock.RedisLockService
+import tech.sergiodelgado.saasstarter.test.TestBootApp
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.context.annotation.Bean
 import org.springframework.data.redis.core.RedisTemplate
@@ -22,7 +23,7 @@ import strikt.assertions.isNotNull
 @Testcontainers
 @Transactional
 @SpringBootTest(
-    classes = [OrganizationServiceIntegrationTest.TestApp::class],
+    classes = [TestBootApp::class, OrganizationServiceIntegrationTest.MockBeans::class],
     properties = [
         "spring.flyway.locations=classpath:db/migration/saasstarter",
         "saasstarter.cache.enabled=false",
@@ -31,8 +32,12 @@ import strikt.assertions.isNotNull
 )
 class OrganizationServiceIntegrationTest {
 
-    @SpringBootApplication
-    class TestApp {
+    /**
+     * Supplies a mock RedisLockService so OrganizationAutoConfiguration can wire
+     * OrganizationService without a real Redis instance.
+     */
+    @TestConfiguration
+    class MockBeans {
         @Bean
         @Suppress("UNCHECKED_CAST")
         fun redisLockService(): RedisLockService =
