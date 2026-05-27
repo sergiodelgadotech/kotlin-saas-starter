@@ -1,8 +1,11 @@
+import com.github.jk1.license.render.JsonReportRenderer
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.spring)
     `java-library`
     `maven-publish`
+    alias(libs.plugins.dependency.license.report)
 }
 
 group = "tech.sergiodelgado"
@@ -13,6 +16,11 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict")
     }
+}
+
+licenseReport {
+    configurations = arrayOf("runtimeClasspath")
+    renderers = arrayOf(JsonReportRenderer("licenses.json"))
 }
 
 dependencies {

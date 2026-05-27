@@ -1,8 +1,9 @@
 [versions]
 kotlin            = "2.3.21"
 spring-boot       = "3.5.14"
-auth0-jwt         = "4.4.0"
-auth0-jwks        = "0.22.1"
+auth0-jwt                 = "4.4.0"
+auth0-jwks                = "0.22.1"
+dependency-license-report = "3.1.2"
 jobrunr           = "7.3.1"
 konform           = "0.11.1"
 mockk             = "1.14.9"
@@ -39,5 +40,6 @@ spring-boot-testcontainers    = { module = "org.springframework.boot:spring-boot
 stripe                        = { module = "com.stripe:stripe-java", version.ref = "stripe" }
 
 [plugins]
-kotlin-jvm    = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+kotlin-jvm                = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring             = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+dependency-license-report = { id = "com.github.jk1.dependency-license-report", version.ref = "dependency-license-report" }
