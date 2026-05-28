@@ -1,17 +1,17 @@
 [versions]
 kotlin            = "2.3.21"
 spring-boot       = "3.5.14"
-auth0-jwt                 = "4.4.0"
-auth0-jwks                = "0.22.1"
+auth0-jwt                 = "4.5.2"
+auth0-jwks                = "0.24.1"
 dependency-license-report = "3.1.2"
-jobrunr           = "7.3.1"
+jobrunr           = "7.5.3"
 konform           = "0.11.1"
 mockk             = "1.14.9"
 strikt            = "0.35.1"
-testcontainers    = "1.20.4"
-flyway            = "11.0.0"
-postgresql        = "42.7.4"
-stripe            = "29.1.0"
+testcontainers    = "1.21.4"
+flyway            = "11.20.3"
+postgresql        = "42.7.11"
+stripe            = "29.5.0"
 
 [libraries]
 spring-boot-autoconfigure     = { module = "org.springframework.boot:spring-boot-autoconfigure" }
