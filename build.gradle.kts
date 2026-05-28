@@ -100,6 +100,12 @@ publishing {
                 name.set("Kotlin SaaS Starter")
                 description.set("Opinionated transversal library for B2B SaaS in Kotlin + Spring Boot")
                 url.set("https://github.com/sergiodelgadotech/kotlin-saas-starter")
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://opensource.org/licenses/MIT")
+                    }
+                }
                 developers {
                     developer {
                         id.set("sergiodelgado")
