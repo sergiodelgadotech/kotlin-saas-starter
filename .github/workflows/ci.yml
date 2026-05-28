@@ -19,7 +19,7 @@ jobs:
         with:
           java-version: '25'
           distribution: temurin
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Run tests
         run: ./gradlew build
 
@@ -47,7 +47,7 @@ jobs:
         with:
           java-version: '25'
           distribution: temurin
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Publish to GitHub Packages
         env:
           GITHUB_ACTOR: ${{ github.actor }}
@@ -101,7 +101,7 @@ jobs:
         with:
           java-version: '25'
           distribution: temurin
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Publish SNAPSHOT to GitHub Packages
         if: steps.version.outputs.snapshot != ''
         env:
