@@ -19,6 +19,8 @@ Thumbs.db
 # Local credentials — never commit
 gradle.properties.local
 
-# Claude Code — per-user / runtime files (shared settings.json may still be committed)
-.claude/settings.local.json
-.claude/scheduled_tasks.lock
+# Claude Code
+.claude/
+
+# Kotlin compiler daemon
+.kotlin/
