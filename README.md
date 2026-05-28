@@ -89,6 +89,12 @@ This library is opinionated. It assumes:
 
 If your stack diverges from these, this library is probably not for you.
 
+## Third-party notices
+
+`NOTICE` at the repo root lists all bundled runtime dependencies and their licenses.
+It is regenerated automatically on every `./gradlew build`.
+If you update a dependency version, commit the updated `NOTICE` alongside the version bump.
+
 ## Versioning
 
 Follows [Semantic Versioning](https://semver.org). Releases are automated via [release-please](https://github.com/googleapis/release-please) — see `CONTRIBUTING.md`.
