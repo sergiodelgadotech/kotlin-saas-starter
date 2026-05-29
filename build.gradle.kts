@@ -6,6 +6,7 @@ plugins {
     `java-library`
     `maven-publish`
     alias(libs.plugins.dependency.license.report)
+    alias(libs.plugins.kover)
 }
 
 group = "tech.sergiodelgado"

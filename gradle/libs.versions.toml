@@ -1,5 +1,6 @@
 [versions]
 kotlin            = "2.3.21"
+kover             = "0.9.8"
 spring-boot       = "3.5.14"
 auth0-jwt                 = "4.5.2"
 auth0-jwks                = "0.24.1"
@@ -43,3 +44,4 @@ stripe                        = { module = "com.stripe:stripe-java", version.ref
 kotlin-jvm                = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-spring             = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 dependency-license-report = { id = "com.github.jk1.dependency-license-report", version.ref = "dependency-license-report" }
+kover                     = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
