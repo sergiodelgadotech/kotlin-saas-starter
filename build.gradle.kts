@@ -82,6 +82,22 @@ tasks.test {
     useJUnitPlatform()
 }
 
+kover {
+    reports {
+        total {
+            verify {
+                rule {
+                    minBound(80)
+                }
+            }
+        }
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.named("koverVerify"))
+}
+
 // ── Publishing to GitHub Packages ─────────────────────────────────────────────
 
 tasks.withType<PublishToMavenRepository>().configureEach {
