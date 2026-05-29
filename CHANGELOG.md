@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.6.0](https://github.com/sergiodelgadotech/kotlin-saas-starter/compare/v0.5.0...v0.6.0) (2026-05-29)
+
+
+### Features
+
+* add BillingAutoConfiguration with BillingService and StripeWebhookHandler ([1fcebb8](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/1fcebb8ca9b97ab41281ffa8169fff05ab1a6050))
+* add BillingPlan interface and SubscriptionStatus enum ([247c3dd](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/247c3dd706c5cc78b133a33d48f227218ba52bd7))
+* add MemberRole interface with DefaultMemberRole enum ([4fa76a3](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/4fa76a37f304893a35703eaef917660790e3870b))
+* add Organization and Member entities with repositories ([7d4a39c](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/7d4a39c4c2320985fb9fd2ee9dbbc249e1cb9a55))
+* add OrganizationService, OrganizationAutoConfiguration, V100 migration ([5c0eddb](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/5c0eddbf81b5d0cf53164a0e1d3f71fd7a276fa6))
+* add OrganizationValidations with Konform commands ([bc49e7e](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/bc49e7e1a3b4c5c6ebcd3e9663d0cba8a0599db6))
+* add Subscription entity, repository, and billing properties ([d5134a0](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/d5134a06d8886403ae2a83e1985833a76a0e5323))
+* add Tenant and RateLimit groups to SaasStarterProperties ([312dd4e](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/312dd4efe8ef464e7e3ed6951d89e451cb356dff))
+* add WebMvcAutoConfiguration with property-driven interceptor paths ([d0d8535](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/d0d8535be8ac94ecc09b07bb540aa9c4905cdb58))
+* **autoconfigure:** add SecurityAutoConfiguration and WebAutoConfiguration (Plan 8) ([8a9f3b0](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/8a9f3b0d81191a9ff3661c2598709d1a8b326ef5))
+* **ci:** delete SNAPSHOT from GitHub Packages when a release is published ([cad728d](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/cad728dce119f33c9ff16f15adddde72dc9aa78a))
+* **ci:** publish main-SNAPSHOT to GitHub Packages on every push to main ([c70f757](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/c70f757caacdd1833496ee130d146d1f31d7ffcc))
+* declare RedisLockService bean in RedisAutoConfiguration ([d21d964](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/d21d964539ef08f38a7e4733d557dffbb8e53695))
+* **devcontainer:** add devcontainer support for VS Code, Cursor, and JetBrains Gateway ([fe77b55](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/fe77b55a1c97d08a86d8ef95ed96f9dfc6db2791))
+* ship subscriptions schema and register BillingAutoConfiguration ([51aab5e](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/51aab5e551efa966782b5d3dd0178bd1d3c75bf2))
+
+
+### Bug Fixes
+
+* **autoconfigure:** use name-based ConditionalOnMissingBean for jsonRedisTemplate ([f82fdbe](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/f82fdbe2a02a9a9fb98e4c5bbaf06419285963d9))
+* **billing:** implement Persistable&lt;UUID&gt; on Subscription and wire AfterConvertCallback ([0661758](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/0661758dc6792f655069d8ba4fa812f9447a05e1))
+* **ci:** derive SNAPSHOT version from release-please branch, skip on releases ([10954dc](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/10954dc383b6e5b1d6df1f64a3bad290a49f02e5))
+* **deps:** update all non-major dependencies ([05b3563](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/05b3563a224686d639eb2ac55f9e2bc5aa310eda))
+* **deps:** update all non-major dependencies ([5097f9c](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/5097f9c3a378f76b4a7b9e7e7f2a72e9cc3c197b))
+* **devcontainer:** add workspaceMount, fix CI java version, add gradle cache volume ([97f081d](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/97f081d8c553cc718a24d60ea0bef0752b805e62))
+* **lock:** release Redis lock atomically via DELEX IFEQ (Redis 8.4+) ([3c3a4d2](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/3c3a4d2bf71d1cd721ba72f7c6bd8858037ad532)), closes [#21](https://github.com/sergiodelgadotech/kotlin-saas-starter/issues/21)
+* remove redundant SQL index, fix KDoc reference, add test isolation ([2998d1d](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/2998d1d365973240b10daee13e9a24c14049b8c5))
+* **test:** move TestBootApp out of organization package to avoid duplicate JDBC repo scan ([622476e](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/622476e81f60987c9323d312a37ef533e8ead82e))
+
+
+### Documentation
+
+* add memory for frontend architecture decision ([2105f8e](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/2105f8e8573a2c1ec1a45a24f80ce8b52a4095bc))
+* document NOTICE regeneration process ([3dd1d18](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/3dd1d18dca739d53268774a66d275f3148f31bb0))
+* **readme:** add CI, stable, and snapshot badges ([5f96cb0](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/5f96cb027731bc473925298a4facbbdc99a9df51))
+
 ## [Unreleased]
 
 ### Features
