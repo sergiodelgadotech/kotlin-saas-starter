@@ -24,7 +24,7 @@ What lives here:
 
 - **Multitenancy primitives** — `TenantContext`, `TenantInterceptor`, `TenantResolver` interface
 - **JWT authentication** — `JwtAuthFilter` for Zitadel or any OIDC provider
-- **Distributed locks** — `RedisLockService` using SET NX PX
+- **Distributed locks** — `RedisLockService` using SET NX PX for acquire, `DELEX IFEQ` (Redis 8.4+) for atomic release
 - **Rate limiting** — `RateLimiter` and `RateLimitInterceptor` using Redis sorted sets
 - **Async jobs** — `JobSchedulerService` and `TenantJobFilter` for tenant-aware Jobrunr execution
 - **Domain validation** — Konform helpers and `DomainValidationException`

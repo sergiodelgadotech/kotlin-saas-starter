@@ -37,7 +37,7 @@ dependencies {
 |--------------|---------|
 | `tenant`     | `TenantContext` (thread-local), `TenantInterceptor`, `TenantResolver` interface |
 | `security`   | `JwtAuthFilter` validates JWTs from any OIDC provider (Zitadel, Keycloak, etc.) |
-| `lock`       | `RedisLockService` for distributed locks via SET NX PX |
+| `lock`       | `RedisLockService` for distributed locks — atomic release via `DELEX IFEQ` (Redis 8.4+) |
 | `ratelimit`  | Sliding window rate limiter on Redis sorted sets |
 | `jobs`       | Tenant-aware Jobrunr execution — automatic context propagation |
 | `validation` | Konform helpers + `DomainValidationException` |
@@ -83,7 +83,7 @@ This library is opinionated. It assumes:
 
 - **Kotlin + Spring Boot 3+**
 - **PostgreSQL** as primary database (via Flyway in your app)
-- **Redis** for caching, locks, sessions, rate limiting
+- **Redis 8.4+** for caching, locks, sessions, rate limiting (lock release uses the native `DELEX IFEQ` command added in 8.4)
 - **Zitadel or any OIDC provider** for authentication
 - **Jobrunr** for async jobs
 
