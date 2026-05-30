@@ -3,6 +3,8 @@ package tech.sergiodelgado.saasstarter.autoconfigure
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfigurations
@@ -18,6 +20,7 @@ import tech.sergiodelgado.saasstarter.ratelimit.RateLimitInterceptor
 import tech.sergiodelgado.saasstarter.ratelimit.RateLimiter
 import tech.sergiodelgado.saasstarter.tenant.TenantInterceptor
 import tech.sergiodelgado.saasstarter.tenant.TenantResolver
+import java.time.Duration
 import java.util.UUID
 
 class WebMvcAutoConfigurationTest {
@@ -126,6 +129,94 @@ class WebMvcAutoConfigurationTest {
         config.addInterceptors(registry)
 
         verify(exactly = 0) { registry.addInterceptor(any()) }
+    }
+
+    @Test
+    fun `rateLimitInterceptor bean defaults to limit 100 and window of 1 minute`() {
+        val rateLimiter = mockk<RateLimiter>()
+        every { rateLimiter.isAllowed(any(), any(), any()) } returns true
+        val props = SaasStarterProperties()
+        val config = WebMvcAutoConfiguration(props, emptyProvider(), emptyProvider())
+        val interceptor = config.rateLimitInterceptor(rateLimiter)
+
+        val request = mockk<HttpServletRequest>()
+        val response = mockk<HttpServletResponse>(relaxed = true)
+        every { request.remoteAddr } returns "1.2.3.4"
+        every { request.requestURI } returns "/foo"
+
+        interceptor.preHandle(request, response, Any())
+
+        verify { rateLimiter.isAllowed(any(), limit = 100, window = Duration.ofMinutes(1)) }
+    }
+
+    @Test
+    fun `rateLimitInterceptor bean uses default limit and window from properties`() {
+        val rateLimiter = mockk<RateLimiter>()
+        every { rateLimiter.isAllowed(any(), any(), any()) } returns true
+        val props = SaasStarterProperties(
+            rateLimit = SaasStarterProperties.RateLimit(
+                default = SaasStarterProperties.RateLimit.Default(
+                    limit = 50,
+                    window = Duration.ofSeconds(30),
+                ),
+            ),
+        )
+        val config = WebMvcAutoConfiguration(props, emptyProvider(), emptyProvider())
+        val interceptor = config.rateLimitInterceptor(rateLimiter)
+
+        val request = mockk<HttpServletRequest>()
+        val response = mockk<HttpServletResponse>(relaxed = true)
+        every { request.remoteAddr } returns "1.2.3.4"
+        every { request.requestURI } returns "/foo"
+
+        interceptor.preHandle(request, response, Any())
+
+        verify { rateLimiter.isAllowed(any(), limit = 50, window = Duration.ofSeconds(30)) }
+    }
+
+    @Test
+    fun `addInterceptors excludes configured paths from rate limit`() {
+        val props = SaasStarterProperties(
+            rateLimit = SaasStarterProperties.RateLimit(
+                pathPatterns = listOf("/**"),
+                excludePathPatterns = listOf("/actuator/**"),
+            ),
+        )
+        val rateLimiter = RateLimiter(mockk(relaxed = true))
+        val rateLimitInterceptor = RateLimitInterceptor(rateLimiter)
+        val rateLimitProvider = interceptorProvider(rateLimitInterceptor)
+        val tenantProvider = emptyProvider<TenantInterceptor>()
+
+        val config = WebMvcAutoConfiguration(props, tenantProvider, rateLimitProvider)
+        val registry = mockk<InterceptorRegistry>()
+        val registration = mockk<InterceptorRegistration>(relaxed = true)
+        every { registry.addInterceptor(rateLimitInterceptor) } returns registration
+        every { registration.addPathPatterns(*anyVararg<String>()) } returns registration
+
+        config.addInterceptors(registry)
+
+        verify { registration.excludePathPatterns("/actuator/**") }
+    }
+
+    @Test
+    fun `addInterceptors does not call excludePathPatterns on rate limit when none configured`() {
+        val props = SaasStarterProperties(
+            rateLimit = SaasStarterProperties.RateLimit(pathPatterns = listOf("/webhooks/**")),
+        )
+        val rateLimiter = RateLimiter(mockk(relaxed = true))
+        val rateLimitInterceptor = RateLimitInterceptor(rateLimiter)
+        val rateLimitProvider = interceptorProvider(rateLimitInterceptor)
+        val tenantProvider = emptyProvider<TenantInterceptor>()
+
+        val config = WebMvcAutoConfiguration(props, tenantProvider, rateLimitProvider)
+        val registry = mockk<InterceptorRegistry>()
+        val registration = mockk<InterceptorRegistration>(relaxed = true)
+        every { registry.addInterceptor(rateLimitInterceptor) } returns registration
+        every { registration.addPathPatterns(*anyVararg<String>()) } returns registration
+
+        config.addInterceptors(registry)
+
+        verify(exactly = 0) { registration.excludePathPatterns(*anyVararg<String>()) }
     }
 
     private fun <T : Any> interceptorProvider(value: T): ObjectProvider<T> =

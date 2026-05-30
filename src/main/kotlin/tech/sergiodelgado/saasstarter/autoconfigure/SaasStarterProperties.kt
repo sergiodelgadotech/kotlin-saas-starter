@@ -47,7 +47,21 @@ data class SaasStarterProperties(
     data class RateLimit(
         val enabled: Boolean = true,
         val pathPatterns: List<String> = emptyList(),
-    )
+        val excludePathPatterns: List<String> = emptyList(),
+        val default: Default = Default(),
+        val routes: List<Route> = emptyList(),
+    ) {
+        data class Default(
+            val limit: Int = 100,
+            val window: Duration = Duration.ofMinutes(1),
+        )
+
+        data class Route(
+            val pathPattern: String,
+            val limit: Int? = null,
+            val window: Duration? = null,
+        )
+    }
 
     data class Billing(
         val enabled: Boolean = true,

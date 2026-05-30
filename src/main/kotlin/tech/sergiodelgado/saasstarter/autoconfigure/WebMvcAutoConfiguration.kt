@@ -2,6 +2,7 @@ package tech.sergiodelgado.saasstarter.autoconfigure
 
 import tech.sergiodelgado.saasstarter.ratelimit.RateLimitInterceptor
 import tech.sergiodelgado.saasstarter.ratelimit.RateLimiter
+import tech.sergiodelgado.saasstarter.ratelimit.RouteConfig
 import tech.sergiodelgado.saasstarter.tenant.TenantInterceptor
 import tech.sergiodelgado.saasstarter.tenant.TenantResolver
 import org.springframework.beans.factory.ObjectProvider
@@ -55,7 +56,12 @@ class WebMvcAutoConfiguration(
         matchIfMissing = true,
     )
     fun rateLimitInterceptor(rateLimiter: RateLimiter): RateLimitInterceptor =
-        RateLimitInterceptor(rateLimiter)
+        RateLimitInterceptor(
+            rateLimiter = rateLimiter,
+            defaultLimit = properties.rateLimit.default.limit,
+            defaultWindow = properties.rateLimit.default.window,
+            routes = properties.rateLimit.routes.map { RouteConfig(it.pathPattern, it.limit, it.window) },
+        )
 
     @Bean
     @ConditionalOnMissingBean
@@ -72,8 +78,11 @@ class WebMvcAutoConfiguration(
     override fun addInterceptors(registry: InterceptorRegistry) {
         rateLimitInterceptorProvider.ifAvailable { interceptor ->
             if (properties.rateLimit.pathPatterns.isNotEmpty()) {
-                registry.addInterceptor(interceptor)
+                val registration = registry.addInterceptor(interceptor)
                     .addPathPatterns(*properties.rateLimit.pathPatterns.toTypedArray())
+                if (properties.rateLimit.excludePathPatterns.isNotEmpty()) {
+                    registration.excludePathPatterns(*properties.rateLimit.excludePathPatterns.toTypedArray())
+                }
             }
         }
         tenantInterceptorProvider.ifAvailable { interceptor ->

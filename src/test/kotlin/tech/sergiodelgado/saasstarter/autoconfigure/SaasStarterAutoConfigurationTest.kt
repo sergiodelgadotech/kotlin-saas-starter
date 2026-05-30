@@ -127,4 +127,36 @@ class SaasStarterAutoConfigurationTest {
                 expectThat(props.rateLimit.pathPatterns).containsExactly("/webhooks/**")
             }
     }
+
+    @Test
+    fun `rate-limit defaults to limit 100 and window of 1 minute`() {
+        contextRunner.run { context ->
+            val props = context.getBean(SaasStarterProperties::class.java)
+            expectThat(props.rateLimit.default.limit).isEqualTo(100)
+            expectThat(props.rateLimit.default.window).isEqualTo(Duration.ofMinutes(1))
+        }
+    }
+
+    @Test
+    fun `rate-limit default limit, window, excludePathPatterns and routes bind from properties`() {
+        contextRunner
+            .withPropertyValues(
+                "saasstarter.rate-limit.default.limit=50",
+                "saasstarter.rate-limit.default.window=PT2M",
+                "saasstarter.rate-limit.exclude-path-patterns=/actuator/**",
+                "saasstarter.rate-limit.routes[0].path-pattern=/api/webhooks/**",
+                "saasstarter.rate-limit.routes[0].limit=10",
+                "saasstarter.rate-limit.routes[0].window=PT30S",
+            )
+            .run { context ->
+                val props = context.getBean(SaasStarterProperties::class.java)
+                expectThat(props.rateLimit.default.limit).isEqualTo(50)
+                expectThat(props.rateLimit.default.window).isEqualTo(Duration.ofMinutes(2))
+                expectThat(props.rateLimit.excludePathPatterns).containsExactly("/actuator/**")
+                expectThat(props.rateLimit.routes).hasSize(1)
+                expectThat(props.rateLimit.routes[0].pathPattern).isEqualTo("/api/webhooks/**")
+                expectThat(props.rateLimit.routes[0].limit).isEqualTo(10)
+                expectThat(props.rateLimit.routes[0].window).isEqualTo(Duration.ofSeconds(30))
+            }
+    }
 }
