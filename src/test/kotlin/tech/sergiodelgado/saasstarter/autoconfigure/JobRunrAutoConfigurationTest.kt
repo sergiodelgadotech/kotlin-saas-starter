@@ -1,14 +1,17 @@
 package tech.sergiodelgado.saasstarter.autoconfigure
 
 import io.mockk.mockk
+import io.mockk.verify
 import tech.sergiodelgado.saasstarter.jobs.TenantJobFilter
 import org.jobrunr.scheduling.JobScheduler
+import org.jobrunr.server.BackgroundJobServer
 import org.jobrunr.storage.StorageProvider
 import org.junit.jupiter.api.Test
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import strikt.api.expectThat
 import strikt.assertions.hasSize
+import strikt.assertions.isEqualTo
 
 class JobRunrAutoConfigurationTest {
 
@@ -53,5 +56,27 @@ class JobRunrAutoConfigurationTest {
                 expectThat(context.getBeansOfType(JobScheduler::class.java)).hasSize(1)
                 expectThat(context.getBeansOfType(TenantJobFilter::class.java)).hasSize(1)
             }
+    }
+
+    @Test
+    fun `tenantJobServerFilterRegistrar adds filter when bean is a BackgroundJobServer`() {
+        val filter = TenantJobFilter()
+        val processor = JobRunrAutoConfiguration().tenantJobServerFilterRegistrar(filter)
+        val server = mockk<BackgroundJobServer>(relaxed = true)
+
+        processor.postProcessBeforeInitialization(server, "backgroundJobServer")
+
+        verify { server.jobFilters }
+    }
+
+    @Test
+    fun `tenantJobServerFilterRegistrar passes through non-BackgroundJobServer beans unchanged`() {
+        val filter = TenantJobFilter()
+        val processor = JobRunrAutoConfiguration().tenantJobServerFilterRegistrar(filter)
+        val otherBean = Any()
+
+        val result = processor.postProcessBeforeInitialization(otherBean, "someBean")
+
+        expectThat(result).isEqualTo(otherBean)
     }
 }

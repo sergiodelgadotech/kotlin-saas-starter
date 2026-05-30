@@ -3,15 +3,19 @@ package tech.sergiodelgado.saasstarter.autoconfigure
 import com.stripe.Stripe
 import io.mockk.mockk
 import tech.sergiodelgado.saasstarter.billing.BillingService
+import tech.sergiodelgado.saasstarter.billing.Subscription
 import tech.sergiodelgado.saasstarter.billing.StripeWebhookHandler
 import tech.sergiodelgado.saasstarter.billing.SubscriptionRepository
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
+import org.springframework.data.relational.core.mapping.event.AfterConvertCallback
 import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
+import java.util.UUID
 
 class BillingAutoConfigurationTest {
 
@@ -48,5 +52,16 @@ class BillingAutoConfigurationTest {
             .run { context ->
                 expectThat(context.getBeansOfType(BillingService::class.java)).hasSize(0)
             }
+    }
+
+    @Test
+    fun `subscriptionAfterConvertCallback sets _new to false`() {
+        contextRunner.run { context ->
+            @Suppress("UNCHECKED_CAST")
+            val callback = context.getBean("subscriptionAfterConvertCallback") as AfterConvertCallback<Subscription>
+            val sub = Subscription(organizationId = UUID.randomUUID(), externalCustomerId = "cus_test")
+            callback.onAfterConvert(sub)
+            expectThat(sub._new).isFalse()
+        }
     }
 }
