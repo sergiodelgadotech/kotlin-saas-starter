@@ -1,11 +1,11 @@
 [versions]
 kotlin            = "2.3.21"
 kover             = "0.9.8"
-spring-boot       = "3.5.14"
+spring-boot       = "4.0.6"
 auth0-jwt                 = "4.5.2"
 auth0-jwks                = "0.24.1"
 dependency-license-report = "3.1.2"
-jobrunr           = "7.5.3"
+jobrunr           = "8.6.1"
 konform           = "0.11.1"
 mockk             = "1.14.9"
 strikt            = "0.35.1"
