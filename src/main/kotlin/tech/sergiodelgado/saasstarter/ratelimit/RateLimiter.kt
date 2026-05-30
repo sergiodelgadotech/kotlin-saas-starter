@@ -1,6 +1,8 @@
 package tech.sergiodelgado.saasstarter.ratelimit
 
+import org.springframework.data.redis.core.RedisOperations
 import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.data.redis.core.SessionCallback
 import java.time.Duration
 
 /**
@@ -25,15 +27,21 @@ class RateLimiter(private val redisTemplate: RedisTemplate<String, Any>) {
     fun isAllowed(key: String, limit: Int, window: Duration): Boolean {
         val now = System.currentTimeMillis()
         val windowStart = now - window.toMillis()
-        val ops = redisTemplate.opsForZSet()
 
-        // Atomic sliding window via pipeline
-        val results = redisTemplate.executePipelined {
-            ops.removeRangeByScore(key, 0.0, windowStart.toDouble())
-            ops.size(key)
-            ops.add(key, now.toString(), now.toDouble())
-            redisTemplate.expire(key, window)
-        }
+        // SessionCallback lets all template ops (opsForZSet, expire) share the same
+        // pipelined connection proxy. A plain lambda would be compiled as RedisCallback
+        // whose ops each obtain a fresh connection, resulting in an empty pipeline.
+        val results = redisTemplate.executePipelined(object : SessionCallback<Unit?> {
+            @Suppress("UNCHECKED_CAST")
+            override fun <K : Any, V : Any> execute(operations: RedisOperations<K, V>): Unit? {
+                val zops = (operations as RedisOperations<String, Any>).opsForZSet()
+                zops.removeRangeByScore(key, 0.0, windowStart.toDouble())
+                zops.size(key)
+                zops.add(key, now.toString(), now.toDouble())
+                operations.expire(key, window)
+                return null
+            }
+        })
 
         val count = (results[1] as? Long) ?: 0
         return count < limit
