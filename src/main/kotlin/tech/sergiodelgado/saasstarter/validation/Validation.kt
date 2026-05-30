@@ -4,7 +4,7 @@ import io.konform.validation.Invalid
 import io.konform.validation.Validation
 import io.konform.validation.ValidationError
 
-fun <T> Validation<T>.validate(value: T): T {
+fun <T> Validation<T>.validateOrThrow(value: T): T {
     val result = this(value)
     if (result is Invalid) {
         val messages = result.errors.joinToString(", ") { "${it.path}: ${it.message}" }
