@@ -1,5 +1,7 @@
 package tech.sergiodelgado.saasstarter.jobs
 
+import io.micrometer.observation.tck.TestObservationRegistry
+import io.micrometer.observation.tck.TestObservationRegistryAssert
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -60,5 +62,44 @@ class JobSchedulerServiceTest {
 
         expectThat(result).isEqualTo(expectedId)
         verify { jobScheduler.schedule(any<Instant>(), job) }
+    }
+
+    @Test
+    fun `enqueue records observation with job id`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val observedService = JobSchedulerService(jobScheduler, observationRegistry)
+        val expectedId = UUID.randomUUID()
+        val jobId = mockk<JobId>()
+        val job = mockk<JobLambda>()
+        every { jobId.asUUID() } returns expectedId
+        every { jobScheduler.enqueue(job) } returns jobId
+
+        observedService.enqueue(job)
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasObservationWithNameEqualTo("saasstarter.job")
+            .that()
+            .hasLowCardinalityKeyValue("operation", "enqueue")
+            .hasHighCardinalityKeyValue("job.id", expectedId.toString())
+    }
+
+    @Test
+    fun `schedule records observation with job id`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val observedService = JobSchedulerService(jobScheduler, observationRegistry)
+        val expectedId = UUID.randomUUID()
+        val jobId = mockk<JobId>()
+        val runAt = Instant.now().plusSeconds(60)
+        val job = mockk<JobLambda>()
+        every { jobId.asUUID() } returns expectedId
+        every { jobScheduler.schedule(runAt, job) } returns jobId
+
+        observedService.schedule(runAt, job)
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasObservationWithNameEqualTo("saasstarter.job")
+            .that()
+            .hasLowCardinalityKeyValue("operation", "schedule")
+            .hasHighCardinalityKeyValue("job.id", expectedId.toString())
     }
 }

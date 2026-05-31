@@ -1,5 +1,7 @@
 package tech.sergiodelgado.saasstarter.ratelimit
 
+import io.micrometer.observation.tck.TestObservationRegistry
+import io.micrometer.observation.tck.TestObservationRegistryAssert
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -104,5 +106,35 @@ class RateLimiterIntegrationTest {
         expectThat(rateLimiter.isAllowed(key2, limit = 5, window = Duration.ofMinutes(1))).isTrue()
         // key1 is exhausted
         expectThat(rateLimiter.isAllowed(key1, limit = 5, window = Duration.ofMinutes(1))).isFalse()
+    }
+
+    @Test
+    fun `isAllowed records allowed observation`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val limiter = RateLimiter(redisTemplate, observationRegistry)
+        val key = "obs:allowed:${UUID.randomUUID()}"
+
+        limiter.isAllowed(key, limit = 5, window = Duration.ofMinutes(1))
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasObservationWithNameEqualTo("saasstarter.ratelimit")
+            .that()
+            .hasLowCardinalityKeyValue("bucket", key)
+            .hasLowCardinalityKeyValue("outcome", "allowed")
+    }
+
+    @Test
+    fun `isAllowed records denied observation when limit exceeded`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val limiter = RateLimiter(redisTemplate, observationRegistry)
+        val key = "obs:denied:${UUID.randomUUID()}"
+
+        // Exhaust the limit
+        repeat(3) { limiter.isAllowed(key, limit = 3, window = Duration.ofMinutes(1)) }
+        // This call should be denied
+        limiter.isAllowed(key, limit = 3, window = Duration.ofMinutes(1))
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasAnObservationWithAKeyValue("outcome", "denied")
     }
 }

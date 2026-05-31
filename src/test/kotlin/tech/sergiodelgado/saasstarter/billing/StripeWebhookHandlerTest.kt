@@ -3,6 +3,8 @@ package tech.sergiodelgado.saasstarter.billing
 import com.stripe.model.Event
 import com.stripe.model.EventDataObjectDeserializer
 import com.stripe.model.Invoice
+import io.micrometer.observation.tck.TestObservationRegistry
+import io.micrometer.observation.tck.TestObservationRegistryAssert
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -28,6 +30,7 @@ class StripeWebhookHandlerTest {
     fun `handle ignores unknown event types without throwing`() {
         val event = mockk<Event>()
         every { event.type } returns "some.unknown.event"
+        every { event.id } returns "evt_unknown"
         handler.handle(event)
     }
 
@@ -37,6 +40,7 @@ class StripeWebhookHandlerTest {
         val deserializer = mockk<EventDataObjectDeserializer>()
         val event = mockk<Event>()
         every { event.type } returns "customer.subscription.deleted"
+        every { event.id } returns "evt_del"
         every { event.dataObjectDeserializer } returns deserializer
         every { deserializer.deserializeUnsafe() } returns stripeSub
         every { stripeSub.id } returns "sub_missing"
@@ -51,6 +55,7 @@ class StripeWebhookHandlerTest {
         val deserializer = mockk<EventDataObjectDeserializer>()
         val event = mockk<Event>()
         every { event.type } returns "invoice.payment_failed"
+        every { event.id } returns "evt_inv"
         every { event.dataObjectDeserializer } returns deserializer
         every { deserializer.deserializeUnsafe() } returns invoice
         every { invoice.customer } returns "cus_missing"
@@ -65,6 +70,7 @@ class StripeWebhookHandlerTest {
         val deserializer = mockk<EventDataObjectDeserializer>()
         val event = mockk<Event>()
         every { event.type } returns "customer.subscription.updated"
+        every { event.id } returns "evt_upd"
         every { event.dataObjectDeserializer } returns deserializer
         every { deserializer.deserializeUnsafe() } returns stripeSub
         every { stripeSub.customer } returns "cus_unknown"
@@ -84,6 +90,7 @@ class StripeWebhookHandlerTest {
         val sub = Subscription(organizationId = UUID.randomUUID(), externalCustomerId = "cus_pro")
 
         every { event.type } returns "customer.subscription.created"
+        every { event.id } returns "evt_created"
         every { event.dataObjectDeserializer } returns deserializer
         every { deserializer.deserializeUnsafe() } returns stripeSub
         every { stripeSub.customer } returns "cus_pro"
@@ -112,6 +119,7 @@ class StripeWebhookHandlerTest {
         val sub = Subscription(organizationId = UUID.randomUUID(), externalCustomerId = "cus_new")
 
         every { event.type } returns "customer.subscription.created"
+        every { event.id } returns "evt_starter"
         every { event.dataObjectDeserializer } returns deserializer
         every { deserializer.deserializeUnsafe() } returns stripeSub
         every { stripeSub.customer } returns "cus_new"
@@ -136,6 +144,7 @@ class StripeWebhookHandlerTest {
         val sub = Subscription(organizationId = UUID.randomUUID(), externalCustomerId = "cus_1", externalSubscriptionId = "sub_to_cancel")
 
         every { event.type } returns "customer.subscription.deleted"
+        every { event.id } returns "evt_cancel"
         every { event.dataObjectDeserializer } returns deserializer
         every { deserializer.deserializeUnsafe() } returns stripeSub
         every { stripeSub.id } returns "sub_to_cancel"
@@ -155,6 +164,7 @@ class StripeWebhookHandlerTest {
         val sub = Subscription(organizationId = UUID.randomUUID(), externalCustomerId = "cus_late")
 
         every { event.type } returns "invoice.payment_failed"
+        every { event.id } returns "evt_failed"
         every { event.dataObjectDeserializer } returns deserializer
         every { deserializer.deserializeUnsafe() } returns invoice
         every { invoice.customer } returns "cus_late"
@@ -164,5 +174,40 @@ class StripeWebhookHandlerTest {
         handler.handle(event)
 
         verify { subscriptionRepository.save(match { it.status == SubscriptionStatus.PAST_DUE }) }
+    }
+
+    @Test
+    fun `handle records observation for known event type`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val observedHandler = StripeWebhookHandler(subscriptionRepository, observationRegistry)
+        val event = mockk<Event>()
+        every { event.type } returns "some.known.event"
+        every { event.id } returns "evt_obs_known"
+
+        // Trigger via the else branch (unknown type from handler's perspective)
+        observedHandler.handle(event)
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasObservationWithNameEqualTo("saasstarter.webhook.stripe")
+            .that()
+            .hasLowCardinalityKeyValue("event.type", "some.known.event")
+            .hasHighCardinalityKeyValue("event.id", "evt_obs_known")
+    }
+
+    @Test
+    fun `handle records observation for unknown event type`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val observedHandler = StripeWebhookHandler(subscriptionRepository, observationRegistry)
+        val event = mockk<Event>()
+        every { event.type } returns "totally.unknown.event"
+        every { event.id } returns "evt_obs_unknown"
+
+        observedHandler.handle(event)
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasObservationWithNameEqualTo("saasstarter.webhook.stripe")
+            .that()
+            .hasLowCardinalityKeyValue("event.type", "totally.unknown.event")
+            .hasHighCardinalityKeyValue("event.id", "evt_obs_unknown")
     }
 }

@@ -1,6 +1,8 @@
 package tech.sergiodelgado.saasstarter.autoconfigure
 
+import io.micrometer.observation.ObservationRegistry
 import tech.sergiodelgado.saasstarter.lock.RedisLockService
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigureAfter
@@ -67,7 +69,8 @@ class RedisAutoConfiguration {
             @Qualifier("jsonRedisTemplate")
             @Suppress("UNCHECKED_CAST")
             redisTemplate: RedisTemplate<String, Any>,
-        ): RedisLockService = RedisLockService(redisTemplate)
+            observationRegistry: ObjectProvider<ObservationRegistry>,
+        ): RedisLockService = RedisLockService(redisTemplate, observationRegistry.getIfAvailable { ObservationRegistry.NOOP })
 
         @Bean
         @ConditionalOnMissingBean

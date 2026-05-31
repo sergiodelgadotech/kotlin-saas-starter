@@ -1,10 +1,12 @@
 package tech.sergiodelgado.saasstarter.autoconfigure
 
 import com.stripe.Stripe
+import io.micrometer.observation.ObservationRegistry
 import tech.sergiodelgado.saasstarter.billing.BillingService
 import tech.sergiodelgado.saasstarter.billing.Subscription
 import tech.sergiodelgado.saasstarter.billing.StripeWebhookHandler
 import tech.sergiodelgado.saasstarter.billing.SubscriptionRepository
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -69,8 +71,11 @@ class BillingAutoConfiguration(
 
         @Bean
         @ConditionalOnMissingBean
-        fun stripeWebhookHandler(repo: SubscriptionRepository): StripeWebhookHandler =
-            StripeWebhookHandler(repo)
+        fun stripeWebhookHandler(
+            repo: SubscriptionRepository,
+            observationRegistry: ObjectProvider<ObservationRegistry>,
+        ): StripeWebhookHandler =
+            StripeWebhookHandler(repo, observationRegistry.getIfAvailable { ObservationRegistry.NOOP })
 
         @Bean
         fun subscriptionAfterConvertCallback(): AfterConvertCallback<Subscription> =

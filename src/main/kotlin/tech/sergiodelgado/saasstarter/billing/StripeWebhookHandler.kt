@@ -2,6 +2,8 @@ package tech.sergiodelgado.saasstarter.billing
 
 import com.stripe.model.Event
 import com.stripe.model.Invoice
+import io.micrometer.observation.Observation
+import io.micrometer.observation.ObservationRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -9,18 +11,24 @@ import java.time.Instant
 @Transactional
 open class StripeWebhookHandler(
     private val subscriptionRepository: SubscriptionRepository,
+    private val observationRegistry: ObservationRegistry = ObservationRegistry.NOOP,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun handle(event: Event) {
-        log.info("Processing Stripe event: ${event.type}")
-        when (event.type) {
-            "customer.subscription.created",
-            "customer.subscription.updated"  -> handleSubscriptionUpdate(event)
-            "customer.subscription.deleted"  -> handleSubscriptionCanceled(event)
-            "invoice.payment_failed"         -> handlePaymentFailed(event)
-            else -> log.debug("Ignoring Stripe event: ${event.type}")
-        }
+        Observation.createNotStarted("saasstarter.webhook.stripe", observationRegistry)
+            .lowCardinalityKeyValue("event.type", event.type)
+            .highCardinalityKeyValue("event.id", event.id ?: "unknown")
+            .observe {
+                log.info("Processing Stripe event: ${event.type}")
+                when (event.type) {
+                    "customer.subscription.created",
+                    "customer.subscription.updated"  -> handleSubscriptionUpdate(event)
+                    "customer.subscription.deleted"  -> handleSubscriptionCanceled(event)
+                    "invoice.payment_failed"         -> handlePaymentFailed(event)
+                    else -> log.debug("Ignoring Stripe event: ${event.type}")
+                }
+            }
     }
 
     private fun handleSubscriptionUpdate(event: Event) {

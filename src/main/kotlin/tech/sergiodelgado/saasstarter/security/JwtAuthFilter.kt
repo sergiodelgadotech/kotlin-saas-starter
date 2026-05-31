@@ -3,6 +3,8 @@ package tech.sergiodelgado.saasstarter.security
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import io.micrometer.observation.Observation
+import io.micrometer.observation.ObservationRegistry
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -23,6 +25,7 @@ import java.security.interfaces.RSAPublicKey
 class JwtAuthFilter(
     private val jwkProvider: JwkProvider,
     private val issuer: String,
+    private val observationRegistry: ObservationRegistry = ObservationRegistry.NOOP,
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -30,22 +33,34 @@ class JwtAuthFilter(
         response: HttpServletResponse,
         chain: FilterChain
     ) {
-        val token = extractToken(request) ?: run {
-            chain.doFilter(request, response)
-            return
+        val token = extractToken(request)
+        val userId = token?.let { validateAndExtractUserId(it) }
+
+        val outcome = when {
+            token == null -> "missing"
+            userId != null -> "success"
+            else -> "invalid"
         }
 
-        val userId = validateAndExtractUserId(token) ?: run {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
-            return
+        val obs = Observation.createNotStarted("saasstarter.auth.jwt", observationRegistry)
+            .lowCardinalityKeyValue("outcome", outcome)
+        if (userId != null) obs.highCardinalityKeyValue("user.id", userId)
+        obs.observe { }
+
+        when {
+            token == null -> {
+                chain.doFilter(request, response)
+            }
+            userId == null -> {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+            }
+            else -> {
+                request.setAttribute(USER_ID_ATTR, userId)
+                val auth = UsernamePasswordAuthenticationToken(userId, null, emptyList())
+                SecurityContextHolder.getContext().authentication = auth
+                chain.doFilter(request, response)
+            }
         }
-
-        request.setAttribute(USER_ID_ATTR, userId)
-
-        val auth = UsernamePasswordAuthenticationToken(userId, null, emptyList())
-        SecurityContextHolder.getContext().authentication = auth
-
-        chain.doFilter(request, response)
     }
 
     private fun extractToken(request: HttpServletRequest): String? =

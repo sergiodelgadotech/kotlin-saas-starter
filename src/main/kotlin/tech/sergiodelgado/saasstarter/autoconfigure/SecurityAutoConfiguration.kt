@@ -3,7 +3,9 @@ package tech.sergiodelgado.saasstarter.autoconfigure
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import com.auth0.jwt.JWT
+import io.micrometer.observation.ObservationRegistry
 import tech.sergiodelgado.saasstarter.security.JwtAuthFilter
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
@@ -45,6 +47,9 @@ class SecurityAutoConfiguration(private val properties: SaasStarterProperties) {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnBean(JwkProvider::class)
-    fun jwtAuthFilter(jwkProvider: JwkProvider): JwtAuthFilter =
-        JwtAuthFilter(jwkProvider, properties.security.issuer)
+    fun jwtAuthFilter(
+        jwkProvider: JwkProvider,
+        observationRegistry: ObjectProvider<ObservationRegistry>,
+    ): JwtAuthFilter =
+        JwtAuthFilter(jwkProvider, properties.security.issuer, observationRegistry.getIfAvailable { ObservationRegistry.NOOP })
 }

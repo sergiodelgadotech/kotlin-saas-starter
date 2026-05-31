@@ -1,10 +1,12 @@
 package tech.sergiodelgado.saasstarter.autoconfigure
 
+import io.micrometer.observation.ObservationRegistry
 import tech.sergiodelgado.saasstarter.jobs.JobSchedulerService
 import tech.sergiodelgado.saasstarter.jobs.TenantJobFilter
 import org.jobrunr.scheduling.JobScheduler
 import org.jobrunr.server.BackgroundJobServer
 import org.jobrunr.storage.StorageProvider
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.config.BeanPostProcessor
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigureBefore
@@ -55,8 +57,11 @@ class JobRunrAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    fun jobSchedulerService(jobScheduler: JobScheduler): JobSchedulerService =
-        JobSchedulerService(jobScheduler)
+    fun jobSchedulerService(
+        jobScheduler: JobScheduler,
+        observationRegistry: ObjectProvider<ObservationRegistry>,
+    ): JobSchedulerService =
+        JobSchedulerService(jobScheduler, observationRegistry.getIfAvailable { ObservationRegistry.NOOP })
 
     // Adds TenantJobFilter to BackgroundJobServer's server-side filter list.
     // postProcessBeforeInitialization fires before initMethod="start", so the

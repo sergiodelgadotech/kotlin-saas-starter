@@ -5,6 +5,8 @@ import io.lettuce.core.codec.ByteArrayCodec
 import io.lettuce.core.output.IntegerOutput
 import io.lettuce.core.protocol.CommandArgs
 import io.lettuce.core.protocol.ProtocolKeyword
+import io.micrometer.observation.Observation
+import io.micrometer.observation.ObservationRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.RedisCallback
 import org.springframework.data.redis.core.RedisTemplate
@@ -25,7 +27,10 @@ import java.util.UUID
  * - Processing a webhook that must run exactly once
  * - Provisioning resources on first login
  */
-class RedisLockService(private val redisTemplate: RedisTemplate<String, Any>) {
+class RedisLockService(
+    private val redisTemplate: RedisTemplate<String, Any>,
+    private val observationRegistry: ObservationRegistry = ObservationRegistry.NOOP,
+) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -55,11 +60,29 @@ class RedisLockService(private val redisTemplate: RedisTemplate<String, Any>) {
 
         if (!acquired) {
             log.warn("Could not acquire lock for key: $key")
+            Observation.createNotStarted("saasstarter.lock", observationRegistry)
+                .lowCardinalityKeyValue("operation", "acquire")
+                .lowCardinalityKeyValue("outcome", "contended")
+                .highCardinalityKeyValue("lock.key", key)
+                .observe { /* no-op body; observation records contended attempt */ }
             throw LockNotAcquiredException("Could not acquire lock: $key")
         }
 
+        val observation = Observation.createNotStarted("saasstarter.lock", observationRegistry)
+            .lowCardinalityKeyValue("operation", "acquire")
+            .lowCardinalityKeyValue("outcome", "success")
+            .highCardinalityKeyValue("lock.key", key)
+            .start()
         return try {
-            block()
+            try {
+                block()
+            } catch (e: Throwable) {
+                observation.lowCardinalityKeyValue("outcome", "error")
+                observation.error(e)
+                throw e
+            } finally {
+                observation.stop()
+            }
         } finally {
             @Suppress("UNCHECKED_CAST")
             val keyBytes = (redisTemplate.keySerializer as RedisSerializer<String>).serialize(lockKey)!!

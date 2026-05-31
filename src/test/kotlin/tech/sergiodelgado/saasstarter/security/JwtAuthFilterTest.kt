@@ -4,6 +4,8 @@ import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import io.micrometer.observation.tck.TestObservationRegistry
+import io.micrometer.observation.tck.TestObservationRegistryAssert
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.AfterEach
@@ -151,5 +153,52 @@ class JwtAuthFilterTest {
     fun `validateAndExtractUserId returns null for malformed token string`() {
         every { jwkProvider.get(any()) } throws com.auth0.jwk.JwkException("bad")
         expectThat(filter.validateAndExtractUserId("not.a.valid.jwt.at.all")).isNull()
+    }
+
+    @Test
+    fun `records missing observation when no token is present`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val observedFilter = JwtAuthFilter(jwkProvider, ISSUER, observationRegistry)
+        val request = MockHttpServletRequest()
+        val response = MockHttpServletResponse()
+
+        observedFilter.doFilter(request, response, MockFilterChain())
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasObservationWithNameEqualTo("saasstarter.auth.jwt")
+            .that()
+            .hasLowCardinalityKeyValue("outcome", "missing")
+    }
+
+    @Test
+    fun `records success observation with user id when token is valid`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val observedFilter = JwtAuthFilter(jwkProvider, ISSUER, observationRegistry)
+        val request = MockHttpServletRequest().apply { addHeader("Authorization", "Bearer ${buildToken()}") }
+        val response = MockHttpServletResponse()
+
+        observedFilter.doFilter(request, response, MockFilterChain())
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasObservationWithNameEqualTo("saasstarter.auth.jwt")
+            .that()
+            .hasLowCardinalityKeyValue("outcome", "success")
+            .hasHighCardinalityKeyValue("user.id", USER_ID)
+    }
+
+    @Test
+    fun `records invalid observation when token fails validation`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val observedFilter = JwtAuthFilter(jwkProvider, ISSUER, observationRegistry)
+        val expired = buildToken(expiresAt = Date(System.currentTimeMillis() - 1_000))
+        val request = MockHttpServletRequest().apply { addHeader("Authorization", "Bearer $expired") }
+        val response = MockHttpServletResponse()
+
+        observedFilter.doFilter(request, response, MockFilterChain())
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasObservationWithNameEqualTo("saasstarter.auth.jwt")
+            .that()
+            .hasLowCardinalityKeyValue("outcome", "invalid")
     }
 }

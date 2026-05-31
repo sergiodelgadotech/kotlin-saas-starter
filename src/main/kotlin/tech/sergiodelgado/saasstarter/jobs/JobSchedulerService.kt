@@ -1,6 +1,7 @@
 package tech.sergiodelgado.saasstarter.jobs
 
-import tech.sergiodelgado.saasstarter.tenant.TenantContext
+import io.micrometer.observation.Observation
+import io.micrometer.observation.ObservationRegistry
 import org.jobrunr.jobs.lambdas.JobLambda
 import org.jobrunr.scheduling.JobScheduler
 import java.time.Duration
@@ -20,13 +21,36 @@ import java.util.UUID
  * jobSchedulerService.schedule(Instant.now().plusSeconds(60)) { reminderService.send(userId) }
  * ```
  */
-class JobSchedulerService(private val jobScheduler: JobScheduler) {
+class JobSchedulerService(
+    private val jobScheduler: JobScheduler,
+    private val observationRegistry: ObservationRegistry = ObservationRegistry.NOOP,
+) {
 
-    fun enqueue(job: JobLambda): UUID =
-        jobScheduler.enqueue(job).asUUID()
+    fun enqueue(job: JobLambda): UUID {
+        val obs = Observation.createNotStarted("saasstarter.job", observationRegistry)
+            .lowCardinalityKeyValue("operation", "enqueue")
+            .start()
+        return try {
+            jobScheduler.enqueue(job).asUUID().also { jobId ->
+                obs.highCardinalityKeyValue("job.id", jobId.toString())
+            }
+        } finally {
+            obs.stop()
+        }
+    }
 
-    fun schedule(runAt: Instant, job: JobLambda): UUID =
-        jobScheduler.schedule(runAt, job).asUUID()
+    fun schedule(runAt: Instant, job: JobLambda): UUID {
+        val obs = Observation.createNotStarted("saasstarter.job", observationRegistry)
+            .lowCardinalityKeyValue("operation", "schedule")
+            .start()
+        return try {
+            jobScheduler.schedule(runAt, job).asUUID().also { jobId ->
+                obs.highCardinalityKeyValue("job.id", jobId.toString())
+            }
+        } finally {
+            obs.stop()
+        }
+    }
 
     fun scheduleIn(delay: Duration, job: JobLambda): UUID =
         schedule(Instant.now().plus(delay), job)

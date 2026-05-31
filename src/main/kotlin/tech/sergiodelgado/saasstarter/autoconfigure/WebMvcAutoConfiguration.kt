@@ -1,5 +1,6 @@
 package tech.sergiodelgado.saasstarter.autoconfigure
 
+import io.micrometer.observation.ObservationRegistry
 import tech.sergiodelgado.saasstarter.ratelimit.RateLimitInterceptor
 import tech.sergiodelgado.saasstarter.ratelimit.RateLimiter
 import tech.sergiodelgado.saasstarter.ratelimit.RouteConfig
@@ -44,7 +45,8 @@ class WebMvcAutoConfiguration(
     fun rateLimiter(
         @Suppress("UNCHECKED_CAST")
         redisTemplate: RedisTemplate<String, Any>,
-    ): RateLimiter = RateLimiter(redisTemplate)
+        observationRegistry: ObjectProvider<ObservationRegistry>,
+    ): RateLimiter = RateLimiter(redisTemplate, observationRegistry.getIfAvailable { ObservationRegistry.NOOP })
 
     @Bean
     @ConditionalOnMissingBean

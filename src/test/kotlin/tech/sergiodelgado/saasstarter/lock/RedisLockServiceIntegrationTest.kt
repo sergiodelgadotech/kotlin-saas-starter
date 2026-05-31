@@ -1,5 +1,7 @@
 package tech.sergiodelgado.saasstarter.lock
 
+import io.micrometer.observation.tck.TestObservationRegistry
+import io.micrometer.observation.tck.TestObservationRegistryAssert
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -82,5 +84,52 @@ class RedisLockServiceIntegrationTest {
                 lockService.withLock("contention-test", ttl = Duration.ofSeconds(30)) {}
             }
         }
+    }
+
+    @Test
+    fun `withLock records successful lock observation`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val service = RedisLockService(redisTemplate, observationRegistry)
+
+        service.withLock("obs-success-test") { /* no-op */ }
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasObservationWithNameEqualTo("saasstarter.lock")
+            .that()
+            .hasLowCardinalityKeyValue("operation", "acquire")
+            .hasLowCardinalityKeyValue("outcome", "success")
+            .hasHighCardinalityKeyValue("lock.key", "obs-success-test")
+    }
+
+    @Test
+    fun `withLock records contended observation when lock is already held`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val service = RedisLockService(redisTemplate, observationRegistry)
+
+        service.withLock("obs-contended-test", ttl = Duration.ofSeconds(30)) {
+            assertThrows<LockNotAcquiredException> {
+                service.withLock("obs-contended-test") { }
+            }
+        }
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasAnObservationWithAKeyValue("outcome", "contended")
+    }
+
+    @Test
+    fun `withLock records error observation when block throws`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val service = RedisLockService(redisTemplate, observationRegistry)
+
+        assertThrows<RuntimeException> {
+            service.withLock("obs-error-test") { throw RuntimeException("block error") }
+        }
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasObservationWithNameEqualTo("saasstarter.lock")
+            .that()
+            .hasLowCardinalityKeyValue("operation", "acquire")
+            .hasLowCardinalityKeyValue("outcome", "error")
+            .hasHighCardinalityKeyValue("lock.key", "obs-error-test")
     }
 }

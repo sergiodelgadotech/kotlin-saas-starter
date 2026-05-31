@@ -1,5 +1,7 @@
 package tech.sergiodelgado.saasstarter.ratelimit
 
+import io.micrometer.observation.Observation
+import io.micrometer.observation.ObservationRegistry
 import org.springframework.data.redis.core.RedisOperations
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.SessionCallback
@@ -15,7 +17,10 @@ import java.time.Duration
  *   3. If under limit, add current timestamp and allow
  *   4. Otherwise, deny
  */
-class RateLimiter(private val redisTemplate: RedisTemplate<String, Any>) {
+class RateLimiter(
+    private val redisTemplate: RedisTemplate<String, Any>,
+    private val observationRegistry: ObservationRegistry = ObservationRegistry.NOOP,
+) {
 
     /**
      * Returns true if the request is allowed, false if rate limit exceeded.
@@ -44,6 +49,11 @@ class RateLimiter(private val redisTemplate: RedisTemplate<String, Any>) {
         })
 
         val count = (results[1] as? Long) ?: 0
-        return count < limit
+        val allowed = count < limit
+        Observation.createNotStarted("saasstarter.ratelimit", observationRegistry)
+            .lowCardinalityKeyValue("bucket", key)
+            .lowCardinalityKeyValue("outcome", if (allowed) "allowed" else "denied")
+            .observe { /* result already computed */ }
+        return allowed
     }
 }
