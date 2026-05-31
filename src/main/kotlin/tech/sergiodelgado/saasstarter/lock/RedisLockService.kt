@@ -88,19 +88,32 @@ class RedisLockService(
             val keyBytes = (redisTemplate.keySerializer as RedisSerializer<String>).serialize(lockKey)!!
             @Suppress("UNCHECKED_CAST")
             val valueBytes = (redisTemplate.valueSerializer as RedisSerializer<Any>).serialize(lockValue)!!
-            redisTemplate.execute(RedisCallback { connection ->
-                // Spring Data Redis's generic execute() cannot decode DELEX's integer reply,
-                // so we use Lettuce's dispatch() with IntegerOutput directly.
-                // nativeConnection returns RedisAsyncCommandsImpl in Spring Data Redis + Lettuce.
-                val codec = ByteArrayCodec.INSTANCE
-                @Suppress("UNCHECKED_CAST")
-                val lettuce = connection.nativeConnection as RedisAsyncCommands<ByteArray, ByteArray>
-                lettuce.dispatch(
-                    DELEX,
-                    IntegerOutput(codec),
-                    CommandArgs(codec).addKey(keyBytes).add("IFEQ").addValue(valueBytes),
-                ).get()
-            })
+            var releaseOutcome = "released"
+            val releaseObs = Observation.createNotStarted("saasstarter.lock", observationRegistry)
+                .lowCardinalityKeyValue("operation", "release")
+                .highCardinalityKeyValue("lock.key", key)
+                .start()
+            try {
+                redisTemplate.execute(RedisCallback { connection ->
+                    // Spring Data Redis's generic execute() cannot decode DELEX's integer reply,
+                    // so we use Lettuce's dispatch() with IntegerOutput directly.
+                    // nativeConnection returns RedisAsyncCommandsImpl in Spring Data Redis + Lettuce.
+                    val codec = ByteArrayCodec.INSTANCE
+                    @Suppress("UNCHECKED_CAST")
+                    val lettuce = connection.nativeConnection as RedisAsyncCommands<ByteArray, ByteArray>
+                    lettuce.dispatch(
+                        DELEX,
+                        IntegerOutput(codec),
+                        CommandArgs(codec).addKey(keyBytes).add("IFEQ").addValue(valueBytes),
+                    ).get()
+                })
+            } catch (e: Exception) {
+                releaseOutcome = "error"
+                releaseObs.error(e)
+                log.warn("Failed to release lock for key: $key", e)
+            } finally {
+                releaseObs.lowCardinalityKeyValue("outcome", releaseOutcome).stop()
+            }
         }
     }
 }

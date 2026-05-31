@@ -187,7 +187,23 @@ class JwtAuthFilterTest {
     }
 
     @Test
-    fun `records invalid observation when token fails validation`() {
+    fun `records invalid observation when token has wrong issuer`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val observedFilter = JwtAuthFilter(jwkProvider, ISSUER, observationRegistry)
+        val wrongIssuer = buildToken(issuer = "https://wrong.issuer.example.com")
+        val request = MockHttpServletRequest().apply { addHeader("Authorization", "Bearer $wrongIssuer") }
+        val response = MockHttpServletResponse()
+
+        observedFilter.doFilter(request, response, MockFilterChain())
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasObservationWithNameEqualTo("saasstarter.auth.jwt")
+            .that()
+            .hasLowCardinalityKeyValue("outcome", "invalid")
+    }
+
+    @Test
+    fun `records expired observation when token is expired`() {
         val observationRegistry = TestObservationRegistry.create()
         val observedFilter = JwtAuthFilter(jwkProvider, ISSUER, observationRegistry)
         val expired = buildToken(expiresAt = Date(System.currentTimeMillis() - 1_000))
@@ -199,6 +215,6 @@ class JwtAuthFilterTest {
         TestObservationRegistryAssert.assertThat(observationRegistry)
             .hasObservationWithNameEqualTo("saasstarter.auth.jwt")
             .that()
-            .hasLowCardinalityKeyValue("outcome", "invalid")
+            .hasLowCardinalityKeyValue("outcome", "expired")
     }
 }

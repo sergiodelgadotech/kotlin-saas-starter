@@ -177,25 +177,7 @@ class StripeWebhookHandlerTest {
     }
 
     @Test
-    fun `handle records observation for known event type`() {
-        val observationRegistry = TestObservationRegistry.create()
-        val observedHandler = StripeWebhookHandler(subscriptionRepository, observationRegistry)
-        val event = mockk<Event>()
-        every { event.type } returns "some.known.event"
-        every { event.id } returns "evt_obs_known"
-
-        // Trigger via the else branch (unknown type from handler's perspective)
-        observedHandler.handle(event)
-
-        TestObservationRegistryAssert.assertThat(observationRegistry)
-            .hasObservationWithNameEqualTo("saasstarter.webhook.stripe")
-            .that()
-            .hasLowCardinalityKeyValue("event.type", "some.known.event")
-            .hasHighCardinalityKeyValue("event.id", "evt_obs_known")
-    }
-
-    @Test
-    fun `handle records observation for unknown event type`() {
+    fun `handle records observation with outcome skipped for unknown event type`() {
         val observationRegistry = TestObservationRegistry.create()
         val observedHandler = StripeWebhookHandler(subscriptionRepository, observationRegistry)
         val event = mockk<Event>()
@@ -209,5 +191,30 @@ class StripeWebhookHandlerTest {
             .that()
             .hasLowCardinalityKeyValue("event.type", "totally.unknown.event")
             .hasHighCardinalityKeyValue("event.id", "evt_obs_unknown")
+            .hasLowCardinalityKeyValue("outcome", "skipped")
+    }
+
+    @Test
+    fun `handle records observation with outcome handled for known event type`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val observedHandler = StripeWebhookHandler(subscriptionRepository, observationRegistry)
+        val invoice = mockk<Invoice>()
+        val deserializer = mockk<EventDataObjectDeserializer>()
+        val event = mockk<Event>()
+        every { event.type } returns "invoice.payment_failed"
+        every { event.id } returns "evt_obs_handled"
+        every { event.dataObjectDeserializer } returns deserializer
+        every { deserializer.deserializeUnsafe() } returns invoice
+        every { invoice.customer } returns "cus_obs"
+        every { subscriptionRepository.findByExternalCustomerId("cus_obs") } returns null
+
+        observedHandler.handle(event)
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasObservationWithNameEqualTo("saasstarter.webhook.stripe")
+            .that()
+            .hasLowCardinalityKeyValue("event.type", "invoice.payment_failed")
+            .hasHighCardinalityKeyValue("event.id", "evt_obs_handled")
+            .hasLowCardinalityKeyValue("outcome", "handled")
     }
 }

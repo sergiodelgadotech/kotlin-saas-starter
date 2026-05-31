@@ -132,4 +132,19 @@ class RedisLockServiceIntegrationTest {
             .hasLowCardinalityKeyValue("outcome", "error")
             .hasHighCardinalityKeyValue("lock.key", "obs-error-test")
     }
+
+    @Test
+    fun `withLock records release observation after successful block`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val service = RedisLockService(redisTemplate, observationRegistry)
+
+        service.withLock("obs-release-test") { /* no-op */ }
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasAnObservationWithAKeyValue("operation", "release")
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasAnObservationWithAKeyValue("outcome", "released")
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasAnObservationWithAKeyValue("lock.key", "obs-release-test")
+    }
 }

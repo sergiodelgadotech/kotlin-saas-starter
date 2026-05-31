@@ -16,19 +16,27 @@ open class StripeWebhookHandler(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun handle(event: Event) {
-        Observation.createNotStarted("saasstarter.webhook.stripe", observationRegistry)
+        var outcome = "handled"
+        val obs = Observation.createNotStarted("saasstarter.webhook.stripe", observationRegistry)
             .lowCardinalityKeyValue("event.type", event.type)
             .highCardinalityKeyValue("event.id", event.id ?: "unknown")
-            .observe {
-                log.info("Processing Stripe event: ${event.type}")
-                when (event.type) {
-                    "customer.subscription.created",
-                    "customer.subscription.updated"  -> handleSubscriptionUpdate(event)
-                    "customer.subscription.deleted"  -> handleSubscriptionCanceled(event)
-                    "invoice.payment_failed"         -> handlePaymentFailed(event)
-                    else -> log.debug("Ignoring Stripe event: ${event.type}")
-                }
+            .start()
+        try {
+            log.info("Processing Stripe event: ${event.type}")
+            when (event.type) {
+                "customer.subscription.created",
+                "customer.subscription.updated"  -> handleSubscriptionUpdate(event)
+                "customer.subscription.deleted"  -> handleSubscriptionCanceled(event)
+                "invoice.payment_failed"         -> handlePaymentFailed(event)
+                else -> { outcome = "skipped"; log.debug("Ignoring Stripe event: ${event.type}") }
             }
+        } catch (e: Exception) {
+            outcome = "error"
+            obs.error(e)
+            throw e
+        } finally {
+            obs.lowCardinalityKeyValue("outcome", outcome).stop()
+        }
     }
 
     private fun handleSubscriptionUpdate(event: Event) {

@@ -3,6 +3,7 @@ package tech.sergiodelgado.saasstarter.security
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.TokenExpiredException
 import io.micrometer.observation.Observation
 import io.micrometer.observation.ObservationRegistry
 import jakarta.servlet.FilterChain
@@ -39,7 +40,7 @@ class JwtAuthFilter(
         val outcome = when {
             token == null -> "missing"
             userId != null -> "success"
-            else -> "invalid"
+            else -> outcomeFor(token)
         }
 
         val obs = Observation.createNotStarted("saasstarter.auth.jwt", observationRegistry)
@@ -79,6 +80,18 @@ class JwtAuthFilter(
     } catch (e: Exception) {
         logger.debug("JWT validation failed: ${e.message}")
         null
+    }
+
+    private fun outcomeFor(token: String): String = try {
+        val jwt = JWT.decode(token)
+        val jwk = jwkProvider.get(jwt.keyId)
+        val algorithm = Algorithm.RSA256(jwk.publicKey as RSAPublicKey, null)
+        JWT.require(algorithm).withIssuer(issuer).build().verify(token)
+        "invalid"  // verification succeeded but userId was null — should not happen; treat as invalid
+    } catch (e: TokenExpiredException) {
+        "expired"
+    } catch (e: Exception) {
+        "invalid"
     }
 
     companion object {
