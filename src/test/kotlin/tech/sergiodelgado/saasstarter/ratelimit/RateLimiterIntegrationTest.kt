@@ -24,9 +24,9 @@ import java.util.UUID
     classes = [TestBootApp::class],
     properties = [
         "spring.autoconfigure.exclude=" +
-            "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration," +
-            "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration," +
-            "org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration," +
+            "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration," +
+            "org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerAutoConfiguration," +
+            "org.springframework.boot.jdbc.autoconfigure.JdbcTemplateAutoConfiguration," +
             "tech.sergiodelgado.saasstarter.autoconfigure.WebMvcAutoConfiguration," +
             "tech.sergiodelgado.saasstarter.autoconfigure.OrganizationAutoConfiguration," +
             "tech.sergiodelgado.saasstarter.autoconfigure.JobRunrAutoConfiguration," +

@@ -4,42 +4,32 @@ Copyright (c) 2026 Sergio Delgado
 This product includes the following third-party components:
 
 ------------------------------------------------------------------------
-ch.randelshofer:fastdoubleparser:0.8.0
-License: MIT License
-http://www.opensource.org/licenses/mit-license.php
-
-------------------------------------------------------------------------
-com.auth0:java-jwt:4.4.0
+com.auth0:java-jwt:4.5.2
 License: The MIT License (MIT)
 https://raw.githubusercontent.com/auth0/java-jwt/master/LICENSE
 
 ------------------------------------------------------------------------
-com.auth0:jwks-rsa:0.22.1
+com.auth0:jwks-rsa:0.24.1
 License: The MIT License (MIT)
 https://raw.githubusercontent.com/auth0/jwks-rsa-java/master/LICENSE
 
 ------------------------------------------------------------------------
-com.fasterxml.jackson.core:jackson-annotations:2.15.0
+com.fasterxml.jackson.core:jackson-annotations:2.21
 License: The Apache Software License, Version 2.0
 https://www.apache.org/licenses/LICENSE-2.0.txt
 
 ------------------------------------------------------------------------
-com.fasterxml.jackson.core:jackson-core:2.15.0
+com.fasterxml.jackson.core:jackson-core:2.21.3
 License: The Apache Software License, Version 2.0
 https://www.apache.org/licenses/LICENSE-2.0.txt
 
 ------------------------------------------------------------------------
-com.fasterxml.jackson.core:jackson-databind:2.15.0
+com.fasterxml.jackson.core:jackson-databind:2.21.3
 License: The Apache Software License, Version 2.0
 https://www.apache.org/licenses/LICENSE-2.0.txt
 
 ------------------------------------------------------------------------
-com.fasterxml.jackson:jackson-bom:2.15.0
-License: The Apache Software License, Version 2.0
-http://www.apache.org/licenses/LICENSE-2.0.txt
-
-------------------------------------------------------------------------
-com.google.code.findbugs:jsr305:3.0.2
+com.fasterxml.jackson:jackson-bom:2.21.3
 License: The Apache Software License, Version 2.0
 http://www.apache.org/licenses/LICENSE-2.0.txt
 
@@ -49,27 +39,32 @@ License: Apache-2.0
 https://www.apache.org/licenses/LICENSE-2.0.txt
 
 ------------------------------------------------------------------------
-com.google.errorprone:error_prone_annotations:2.18.0
+com.google.errorprone:error_prone_annotations:2.47.0
 License: Apache 2.0
 http://www.apache.org/licenses/LICENSE-2.0.txt
 
 ------------------------------------------------------------------------
-com.google.guava:failureaccess:1.0.1
+com.google.guava:failureaccess:1.0.3
+License: Apache License, Version 2.0
+http://www.apache.org/licenses/LICENSE-2.0.txt
+
+------------------------------------------------------------------------
+com.google.guava:guava:33.6.0-jre
+License: Apache License, Version 2.0
+http://www.apache.org/licenses/LICENSE-2.0.txt
+
+------------------------------------------------------------------------
+com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
 License: The Apache Software License, Version 2.0
 http://www.apache.org/licenses/LICENSE-2.0.txt
 
 ------------------------------------------------------------------------
-com.google.guava:guava:32.1.1-jre
+com.google.j2objc:j2objc-annotations:3.1
 License: Apache License, Version 2.0
 http://www.apache.org/licenses/LICENSE-2.0.txt
 
 ------------------------------------------------------------------------
-com.google.guava:guava-parent:32.1.1-jre
-License: Apache License, Version 2.0
-http://www.apache.org/licenses/LICENSE-2.0.txt
-
-------------------------------------------------------------------------
-com.stripe:stripe-java:29.1.0
+com.stripe:stripe-java:29.5.0
 License: The MIT License
 https://opensource.org/licenses/MIT
 
@@ -79,11 +74,6 @@ License: MIT
 https://opensource.org/licenses/MIT
 
 ------------------------------------------------------------------------
-org.checkerframework:checker-qual:3.33.0
-License: The MIT License
-http://opensource.org/licenses/MIT
-
-------------------------------------------------------------------------
 org.jetbrains.kotlin:kotlin-stdlib:2.3.21
 License: Apache-2.0
 http://www.apache.org/licenses/LICENSE-2.0.txt
@@ -91,5 +81,10 @@ http://www.apache.org/licenses/LICENSE-2.0.txt
 ------------------------------------------------------------------------
 org.jetbrains:annotations:13.0
 License: The Apache Software License, Version 2.0
+http://www.apache.org/licenses/LICENSE-2.0.txt
+
+------------------------------------------------------------------------
+org.jspecify:jspecify:1.0.0
+License: The Apache License, Version 2.0
 http://www.apache.org/licenses/LICENSE-2.0.txt
 ------------------------------------------------------------------------

@@ -30,11 +30,11 @@ class TenantJobFilterTest {
         val tenantId = UUID.randomUUID()
         TenantContext.set(tenantId)
         val job = mockk<AbstractJob>(relaxed = true)
-        every { job.labels } returns emptySet()
+        every { job.labels } returns emptyList()
 
         filter.onCreating(job)
 
-        verify { job.labels = setOf("tenant:$tenantId") }
+        verify { job.labels = listOf("tenant:$tenantId") }
     }
 
     @Test
@@ -51,11 +51,11 @@ class TenantJobFilterTest {
         val tenantId = UUID.randomUUID()
         TenantContext.set(tenantId)
         val job = mockk<AbstractJob>(relaxed = true)
-        every { job.labels } returns setOf("existing-label")
+        every { job.labels } returns listOf("existing-label")
 
         filter.onCreating(job)
 
-        verify { job.labels = setOf("existing-label", "tenant:$tenantId") }
+        verify { job.labels = listOf("existing-label", "tenant:$tenantId") }
     }
 
     // ─── onProcessing ────────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ class TenantJobFilterTest {
     fun `onProcessing restores tenant context from label`() {
         val tenantId = UUID.randomUUID()
         val job = mockk<Job>(relaxed = true)
-        every { job.labels } returns setOf("tenant:$tenantId")
+        every { job.labels } returns listOf("tenant:$tenantId")
 
         filter.onProcessing(job)
 
@@ -75,7 +75,7 @@ class TenantJobFilterTest {
     @Test
     fun `onProcessing does nothing when no tenant label is present`() {
         val job = mockk<Job>(relaxed = true)
-        every { job.labels } returns emptySet()
+        every { job.labels } returns emptyList()
 
         filter.onProcessing(job)
 
@@ -85,7 +85,7 @@ class TenantJobFilterTest {
     @Test
     fun `onProcessing ignores malformed UUID label without throwing`() {
         val job = mockk<Job>(relaxed = true)
-        every { job.labels } returns setOf("tenant:not-a-uuid")
+        every { job.labels } returns listOf("tenant:not-a-uuid")
 
         filter.onProcessing(job)
 

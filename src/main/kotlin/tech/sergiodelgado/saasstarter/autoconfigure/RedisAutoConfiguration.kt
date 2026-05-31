@@ -35,7 +35,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer
  * is the correct approach (same as Spring Boot's own RedisCacheConfiguration).
  */
 @AutoConfiguration
-@AutoConfigureAfter(org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration::class)
+@AutoConfigureAfter(name = ["org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration"])
 @ConditionalOnClass(RedisConnectionFactory::class)
 @ConditionalOnProperty(
     prefix = "saasstarter.cache",

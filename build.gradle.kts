@@ -15,7 +15,7 @@ version = providers.gradleProperty("version").getOrElse("0.1.0-SNAPSHOT")
 kotlin {
     jvmToolchain(25)
     compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
+        freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
     }
 }
 
@@ -65,6 +65,7 @@ dependencies {
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.flyway.core)
     testImplementation(libs.flyway.postgres)
+    testImplementation(libs.spring.boot.flyway)
     testImplementation(libs.postgresql)
     testImplementation(libs.testcontainers.postgres)
     testImplementation(libs.spring.boot.testcontainers)

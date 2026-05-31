@@ -1,11 +1,11 @@
 [versions]
 kotlin            = "2.3.21"
 kover             = "0.9.8"
-spring-boot       = "3.5.14"
+spring-boot       = "4.0.6"
 auth0-jwt                 = "4.5.2"
 auth0-jwks                = "0.24.1"
 dependency-license-report = "3.1.2"
-jobrunr           = "7.5.3"
+jobrunr           = "8.6.1"
 konform           = "0.11.1"
 mockk             = "1.14.9"
 strikt            = "0.35.1"
@@ -26,7 +26,7 @@ spring-boot-test              = { module = "org.springframework.boot:spring-boot
 spring-session-redis          = { module = "org.springframework.session:spring-session-data-redis" }
 auth0-jwt                     = { module = "com.auth0:java-jwt", version.ref = "auth0-jwt" }
 auth0-jwks                    = { module = "com.auth0:jwks-rsa", version.ref = "auth0-jwks" }
-jobrunr-spring                = { module = "org.jobrunr:jobrunr-spring-boot-3-starter", version.ref = "jobrunr" }
+jobrunr-spring                = { module = "org.jobrunr:jobrunr-spring-boot-4-starter", version.ref = "jobrunr" }
 konform                       = { module = "io.konform:konform-jvm", version.ref = "konform" }
 mockk                         = { module = "io.mockk:mockk", version.ref = "mockk" }
 strikt-core                   = { module = "io.strikt:strikt-core", version.ref = "strikt" }
@@ -35,6 +35,7 @@ junit-platform-launcher       = { module = "org.junit.platform:junit-platform-la
 testcontainers-junit          = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
 flyway-core                   = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-postgres               = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+spring-boot-flyway            = { module = "org.springframework.boot:spring-boot-flyway" }
 postgresql                    = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 testcontainers-postgres       = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 spring-boot-testcontainers    = { module = "org.springframework.boot:spring-boot-testcontainers" }

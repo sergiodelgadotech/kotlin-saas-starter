@@ -5,7 +5,6 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
 import org.springframework.context.annotation.Configuration
 import org.springframework.session.SessionRepository
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession
@@ -22,7 +21,7 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
  * dependency is resolved at bean instantiation time — no explicit [ConditionalOnBean] needed.
  */
 @AutoConfiguration
-@AutoConfigureAfter(RedisAutoConfiguration::class)
+@AutoConfigureAfter(name = ["org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration"])
 @ConditionalOnClass(EnableRedisHttpSession::class)
 @ConditionalOnProperty(
     prefix = "saasstarter.session",
