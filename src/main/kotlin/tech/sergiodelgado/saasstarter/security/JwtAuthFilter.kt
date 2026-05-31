@@ -35,32 +35,42 @@ class JwtAuthFilter(
         chain: FilterChain
     ) {
         val token = extractToken(request)
-        val userId = token?.let { validateAndExtractUserId(it) }
-
-        val outcome = when {
-            token == null -> "missing"
-            userId != null -> "success"
-            else -> outcomeFor(token)
+        var userId: String? = null
+        val outcome: String = if (token == null) {
+            "missing"
+        } else {
+            try {
+                userId = verifyAndExtractUserId(token)
+                "success"
+            } catch (e: TokenExpiredException) {
+                "expired"
+            } catch (e: Exception) {
+                logger.debug("JWT validation failed: ${e.message}")
+                "invalid"
+            }
         }
 
         val obs = Observation.createNotStarted("saasstarter.auth.jwt", observationRegistry)
             .lowCardinalityKeyValue("outcome", outcome)
-        if (userId != null) obs.highCardinalityKeyValue("user.id", userId)
-        obs.observe { }
-
-        when {
-            token == null -> {
-                chain.doFilter(request, response)
+            .start()
+        try {
+            if (userId != null) obs.highCardinalityKeyValue("user.id", userId)
+            when {
+                token == null -> {
+                    chain.doFilter(request, response)
+                }
+                userId == null -> {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                }
+                else -> {
+                    request.setAttribute(USER_ID_ATTR, userId)
+                    val auth = UsernamePasswordAuthenticationToken(userId, null, emptyList())
+                    SecurityContextHolder.getContext().authentication = auth
+                    chain.doFilter(request, response)
+                }
             }
-            userId == null -> {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
-            }
-            else -> {
-                request.setAttribute(USER_ID_ATTR, userId)
-                val auth = UsernamePasswordAuthenticationToken(userId, null, emptyList())
-                SecurityContextHolder.getContext().authentication = auth
-                chain.doFilter(request, response)
-            }
+        } finally {
+            obs.stop()
         }
     }
 
@@ -69,29 +79,21 @@ class JwtAuthFilter(
             ?.takeIf { it.startsWith("Bearer ") }
             ?.substring(7)
 
-    internal fun validateAndExtractUserId(token: String): String? = try {
+    private fun verifyAndExtractUserId(token: String): String {
         val jwt = JWT.decode(token)
         val jwk = jwkProvider.get(jwt.keyId)
         val algorithm = Algorithm.RSA256(jwk.publicKey as RSAPublicKey, null)
         val verifier = JWT.require(algorithm)
             .withIssuer(issuer)
             .build()
-        verifier.verify(token).subject  // sub = Zitadel user ID
+        return verifier.verify(token).subject  // sub = Zitadel user ID
+    }
+
+    internal fun validateAndExtractUserId(token: String): String? = try {
+        verifyAndExtractUserId(token)
     } catch (e: Exception) {
         logger.debug("JWT validation failed: ${e.message}")
         null
-    }
-
-    private fun outcomeFor(token: String): String = try {
-        val jwt = JWT.decode(token)
-        val jwk = jwkProvider.get(jwt.keyId)
-        val algorithm = Algorithm.RSA256(jwk.publicKey as RSAPublicKey, null)
-        JWT.require(algorithm).withIssuer(issuer).build().verify(token)
-        "invalid"  // verification succeeded but userId was null — should not happen; treat as invalid
-    } catch (e: TokenExpiredException) {
-        "expired"
-    } catch (e: Exception) {
-        "invalid"
     }
 
     companion object {

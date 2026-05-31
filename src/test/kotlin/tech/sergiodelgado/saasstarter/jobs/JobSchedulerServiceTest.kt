@@ -9,6 +9,7 @@ import org.jobrunr.jobs.JobId
 import org.jobrunr.jobs.lambdas.JobLambda
 import org.jobrunr.scheduling.JobScheduler
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.time.Duration
@@ -101,5 +102,38 @@ class JobSchedulerServiceTest {
             .that()
             .hasLowCardinalityKeyValue("operation", "schedule")
             .hasHighCardinalityKeyValue("job.id", expectedId.toString())
+    }
+
+    @Test
+    fun `enqueue records error on observation when jobScheduler throws`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val observedService = JobSchedulerService(jobScheduler, observationRegistry)
+        val job = mockk<JobLambda>()
+        every { jobScheduler.enqueue(job) } throws RuntimeException("enqueue failed")
+
+        assertThrows<RuntimeException> { observedService.enqueue(job) }
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasObservationWithNameEqualTo("saasstarter.job")
+            .that()
+            .hasLowCardinalityKeyValue("operation", "enqueue")
+            .hasError()
+    }
+
+    @Test
+    fun `schedule records error on observation when jobScheduler throws`() {
+        val observationRegistry = TestObservationRegistry.create()
+        val observedService = JobSchedulerService(jobScheduler, observationRegistry)
+        val runAt = Instant.now().plusSeconds(60)
+        val job = mockk<JobLambda>()
+        every { jobScheduler.schedule(runAt, job) } throws RuntimeException("schedule failed")
+
+        assertThrows<RuntimeException> { observedService.schedule(runAt, job) }
+
+        TestObservationRegistryAssert.assertThat(observationRegistry)
+            .hasObservationWithNameEqualTo("saasstarter.job")
+            .that()
+            .hasLowCardinalityKeyValue("operation", "schedule")
+            .hasError()
     }
 }

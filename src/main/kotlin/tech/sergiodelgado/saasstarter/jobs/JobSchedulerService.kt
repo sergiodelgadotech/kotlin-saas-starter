@@ -34,6 +34,9 @@ class JobSchedulerService(
             jobScheduler.enqueue(job).asUUID().also { jobId ->
                 obs.highCardinalityKeyValue("job.id", jobId.toString())
             }
+        } catch (e: Exception) {
+            obs.error(e)
+            throw e
         } finally {
             obs.stop()
         }
@@ -47,6 +50,9 @@ class JobSchedulerService(
             jobScheduler.schedule(runAt, job).asUUID().also { jobId ->
                 obs.highCardinalityKeyValue("job.id", jobId.toString())
             }
+        } catch (e: Exception) {
+            obs.error(e)
+            throw e
         } finally {
             obs.stop()
         }

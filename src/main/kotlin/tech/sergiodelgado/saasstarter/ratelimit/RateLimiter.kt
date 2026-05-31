@@ -51,9 +51,9 @@ class RateLimiter(
         val count = (results[1] as? Long) ?: 0
         val allowed = count < limit
         Observation.createNotStarted("saasstarter.ratelimit", observationRegistry)
-            .lowCardinalityKeyValue("bucket", key)
+            .highCardinalityKeyValue("bucket", key)
             .lowCardinalityKeyValue("outcome", if (allowed) "allowed" else "denied")
-            .observe { /* result already computed */ }
+            .observe { }
         return allowed
     }
 }

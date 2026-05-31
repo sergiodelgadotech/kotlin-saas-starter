@@ -119,7 +119,7 @@ class RateLimiterIntegrationTest {
         TestObservationRegistryAssert.assertThat(observationRegistry)
             .hasObservationWithNameEqualTo("saasstarter.ratelimit")
             .that()
-            .hasLowCardinalityKeyValue("bucket", key)
+            .hasHighCardinalityKeyValue("bucket", key)
             .hasLowCardinalityKeyValue("outcome", "allowed")
     }
 

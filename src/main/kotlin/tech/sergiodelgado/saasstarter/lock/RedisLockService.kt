@@ -64,7 +64,7 @@ class RedisLockService(
                 .lowCardinalityKeyValue("operation", "acquire")
                 .lowCardinalityKeyValue("outcome", "contended")
                 .highCardinalityKeyValue("lock.key", key)
-                .observe { /* no-op body; observation records contended attempt */ }
+                .observe { }
             throw LockNotAcquiredException("Could not acquire lock: $key")
         }
 
