@@ -10,6 +10,8 @@ This file gives Claude Code the context it needs to work effectively on this rep
 
 `kotlin-saas-starter` is an opinionated **library** that captures the transversal infrastructure for B2B SaaS products built in Kotlin + Spring Boot. It is **not an application** — it has no `main()`, no controllers, no domain entities. It exposes reusable building blocks that consuming applications wire into their own setup.
 
+**Note:** Spring Boot 4.0.x is the minimum for consumers (upgraded from 3.x as of starter 0.7.0); apps still on Spring Boot 3 cannot upgrade beyond starter 0.6.x.
+
 It is published as a Maven artifact to GitHub Packages and consumed by SaaS applications via:
 
 ```kotlin
