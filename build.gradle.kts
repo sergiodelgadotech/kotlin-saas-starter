@@ -37,6 +37,7 @@ dependencies {
     compileOnly(libs.spring.boot.validation)
     compileOnly(libs.spring.session.redis)
     compileOnly(libs.jobrunr.spring)
+    compileOnly(libs.micrometer.observation)
 
     // JWT validation — bundled because it's our concrete choice
     api(libs.auth0.jwt)
@@ -59,6 +60,8 @@ dependencies {
     testImplementation(libs.spring.boot.validation)
     testImplementation(libs.spring.session.redis)
     testImplementation(libs.jobrunr.spring)
+    testImplementation(libs.micrometer.observation)
+    testImplementation(libs.micrometer.observation.test)
     testImplementation(libs.spring.boot.test)
     testImplementation(libs.mockk)
     testImplementation(libs.strikt.core)

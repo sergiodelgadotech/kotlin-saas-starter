@@ -40,6 +40,8 @@ postgresql                    = { module = "org.postgresql:postgresql", version.
 testcontainers-postgres       = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 spring-boot-testcontainers    = { module = "org.springframework.boot:spring-boot-testcontainers" }
 stripe                        = { module = "com.stripe:stripe-java", version.ref = "stripe" }
+micrometer-observation        = { module = "io.micrometer:micrometer-observation" }
+micrometer-observation-test   = { module = "io.micrometer:micrometer-observation-test" }
 
 [plugins]
 kotlin-jvm                = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

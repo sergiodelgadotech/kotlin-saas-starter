@@ -7,3 +7,4 @@ tech.sergiodelgado.saasstarter.autoconfigure.OrganizationAutoConfiguration
 tech.sergiodelgado.saasstarter.autoconfigure.BillingAutoConfiguration
 tech.sergiodelgado.saasstarter.autoconfigure.SecurityAutoConfiguration
 tech.sergiodelgado.saasstarter.autoconfigure.WebAutoConfiguration
+tech.sergiodelgado.saasstarter.autoconfigure.ObservabilityAutoConfiguration

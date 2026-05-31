@@ -5,3 +5,4 @@
 - [Trunk-based development — commit on main](feedback_trunk_based_development.md) — both repos commit directly to main; skip feature branches and worktrees
 - [Frontend is Thymeleaf MVC, not SPA/REST](project_frontend_architecture.md) — affects error handler design; don't ship ProblemDetail/REST variant speculatively
 - [Autoconfig inner-class pattern — drop @ConditionalOnBean, use unique bean name](feedback_autoconfig_inner_class_pattern.md) — @ConditionalOnBean on inner @Configuration always evaluates false; use unique @Bean name to avoid Spring Boot's redisTemplate conflict
+- [Plan 1: Observability foundations](project_observability_plan.md) — starter #49/50/51 + template #49; Grafana Cloud free tier chosen as backend; A blocks B, C, D

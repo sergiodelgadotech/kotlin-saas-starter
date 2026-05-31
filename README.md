@@ -35,13 +35,14 @@ dependencies {
 
 | Package      | Purpose |
 |--------------|---------|
-| `tenant`     | `TenantContext` (thread-local), `TenantInterceptor`, `TenantResolver` interface |
-| `security`   | `JwtAuthFilter` validates JWTs from any OIDC provider (Zitadel, Keycloak, etc.) |
-| `lock`       | `RedisLockService` for distributed locks — atomic release via `DELEX IFEQ` (Redis 8.4+) |
-| `ratelimit`  | Sliding window rate limiter on Redis sorted sets |
-| `jobs`       | Tenant-aware Jobrunr execution — automatic context propagation |
-| `validation` | Konform helpers + `DomainValidationException` |
-| `web`        | `GlobalExceptionHandler` base for consistent error responses |
+| `tenant`        | `TenantContext` (thread-local), `TenantInterceptor`, `TenantResolver` interface |
+| `security`      | `JwtAuthFilter` validates JWTs from any OIDC provider (Zitadel, Keycloak, etc.) |
+| `lock`          | `RedisLockService` for distributed locks — atomic release via `DELEX IFEQ` (Redis 8.4+) |
+| `ratelimit`     | Sliding window rate limiter on Redis sorted sets |
+| `jobs`          | Tenant-aware Jobrunr execution — automatic context propagation |
+| `validation`    | Konform helpers + `DomainValidationException` |
+| `web`           | `GlobalExceptionHandler` base for consistent error responses |
+| `observability` | Correlation ID propagation, tenant MDC, and Micrometer observation tagging |
 
 ## Wiring it into your app
 
@@ -72,6 +73,39 @@ class WebMvcConfig(
 ```
 
 See the companion repo `mvp-saas-template` for a full example.
+
+## Observability
+
+`ObservabilityAutoConfiguration` registers three components automatically on any servlet web application:
+
+### MDC keys
+
+| Key              | Set by                  | Scope |
+|------------------|-------------------------|-------|
+| `correlation_id` | `CorrelationIdFilter`   | All requests — present from the very first filter in the chain |
+| `tenant_id`      | `TenantMdcInterceptor`  | Controller and downstream — set after the interceptor chain runs |
+
+**Filter vs. interceptor asymmetry:** `correlation_id` is set by a servlet filter at `Ordered.HIGHEST_PRECEDENCE`, so it appears in every log line including security and other early filters. `tenant_id` is set by a `HandlerInterceptor`, which runs after the filter chain — it is available in controller logs and any beans called from controllers, but NOT in filter-time logs. This is an intentional trade-off: the tenant isn't resolved until `TenantInterceptor` runs (which itself is an interceptor), so an earlier MDC entry for `tenant_id` would always be empty.
+
+The `X-Correlation-Id` header is echoed back on every response so clients and upstreams can correlate requests across services.
+
+### Micrometer observation tagging
+
+`TenantObservationFilter` adds `tenant.id` as a **low-cardinality key-value** on every Micrometer `Observation`. It is only registered when an `ObservationRegistry` bean is present in the application context (e.g. when `spring-boot-starter-actuator` is on the classpath).
+
+**Cardinality warning:** Low cardinality is appropriate for B2B SaaS products with hundreds or thousands of tenants. If your product uses a consumer-scale model where tenants map 1:1 to end-users (millions), the `tenant.id` tag will cause metric label explosion in your metrics backend. In that case, override `TenantObservationFilter` and use `highCardinalityKeyValue` instead:
+
+```kotlin
+@Bean("saasStarterTenantObservationFilter")
+fun tenantObservationFilter() = ObservationFilter { context ->
+    if (TenantContext.isPresent()) {
+        context.addHighCardinalityKeyValue(
+            KeyValue.of("tenant.id", TenantContext.get().toString())
+        )
+    }
+    context
+}
+```
 
 ## Project tracking
 
