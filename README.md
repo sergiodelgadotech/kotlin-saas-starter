@@ -107,6 +107,15 @@ fun tenantObservationFilter() = ObservationFilter { context ->
 }
 ```
 
+### Health indicators
+
+This library does not add custom health indicators. Instead, it leverages Spring Boot Actuator and Jobrunr's built-in indicators:
+
+- **Redis** — `RedisHealthIndicator` is auto-configured by Spring Boot Actuator when `spring-boot-starter-data-redis` is on the classpath. It probes the Redis connection. Disable with `management.health.redis.enabled=false`.
+- **Jobrunr** — `JobRunrHealthIndicator` is auto-configured by `jobrunr-spring-boot-4-starter`. It reports the background job server status (`running`, `stopped`, or `disabled`). Disable with `management.health.jobrunr.enabled=false`.
+
+Both are enabled by default. Access health data via `/actuator/health` (or `/actuator/health/{indicator}` for granular checks).
+
 ## Project tracking
 
 Active development is tracked on the [Starter/template split project](https://github.com/users/serandel/projects/6), which spans this library and the [mvp-saas-template](https://github.com/serandel/mvp-saas-template) reference application.
