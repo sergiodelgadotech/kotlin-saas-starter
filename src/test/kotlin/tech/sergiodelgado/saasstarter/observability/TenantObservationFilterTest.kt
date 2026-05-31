@@ -21,7 +21,6 @@ class TenantObservationFilterTest {
     @AfterEach
     fun cleanup() {
         TenantContext.clear()
-        registry.clear()
     }
 
     @Test

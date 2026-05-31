@@ -58,4 +58,15 @@ class TenantMdcInterceptorTest {
 
         expectThat(MDC.get("tenant_id")).isNull()
     }
+
+    @Test
+    fun `clears tenant_id from MDC in afterCompletion when exception is thrown`() {
+        val tenantId = UUID.randomUUID()
+        TenantContext.set(tenantId)
+        MDC.put("tenant_id", tenantId.toString())
+
+        interceptor.afterCompletion(request, response, handler, RuntimeException("boom"))
+
+        expectThat(MDC.get("tenant_id")).isNull()
+    }
 }

@@ -1,10 +1,8 @@
 package tech.sergiodelgado.saasstarter.autoconfigure
 
-import io.micrometer.observation.ObservationRegistry
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigureAfter
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET
@@ -23,7 +21,7 @@ import tech.sergiodelgado.saasstarter.observability.TenantObservationFilter
  * - [CorrelationIdFilter]: propagates/generates X-Correlation-Id header and writes it to MDC
  * - [TenantMdcInterceptor]: writes tenant ID to MDC for controller-scoped logs
  * - [TenantObservationFilter]: tags Micrometer observations with the current tenant ID
- *   (conditional on Micrometer's [ObservationRegistry] being on the classpath)
+ *   (conditional on Micrometer's ObservationFilter being on the classpath)
  */
 @AutoConfiguration
 @AutoConfigureAfter(WebMvcAutoConfiguration::class)
@@ -37,7 +35,7 @@ class ObservabilityAutoConfiguration(
     }
 
     @Configuration(proxyBeanMethods = false)
-    class BeansConfig {
+    class MdcBeansConfig {
 
         @Bean(name = ["saasStarterCorrelationIdFilter"])
         fun correlationIdFilter(): FilterRegistrationBean<CorrelationIdFilter> =
@@ -47,9 +45,13 @@ class ObservabilityAutoConfiguration(
 
         @Bean(name = ["saasStarterTenantMdcInterceptor"])
         fun tenantMdcInterceptor(): TenantMdcInterceptor = TenantMdcInterceptor()
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(name = ["io.micrometer.observation.ObservationFilter"])
+    class MicrometerBeansConfig {
 
         @Bean(name = ["saasStarterTenantObservationFilter"])
-        @ConditionalOnBean(ObservationRegistry::class)
         fun tenantObservationFilter(): TenantObservationFilter = TenantObservationFilter()
     }
 }
