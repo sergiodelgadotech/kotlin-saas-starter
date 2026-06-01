@@ -13,6 +13,7 @@ testcontainers    = "1.21.4"
 flyway            = "11.20.3"
 postgresql        = "42.7.11"
 stripe            = "29.5.0"
+resend            = "4.13.0"
 
 [libraries]
 spring-boot-autoconfigure     = { module = "org.springframework.boot:spring-boot-autoconfigure" }
@@ -40,6 +41,7 @@ postgresql                    = { module = "org.postgresql:postgresql", version.
 testcontainers-postgres       = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 spring-boot-testcontainers    = { module = "org.springframework.boot:spring-boot-testcontainers" }
 stripe                        = { module = "com.stripe:stripe-java", version.ref = "stripe" }
+resend                        = { module = "com.resend:resend-java", version.ref = "resend" }
 micrometer-observation        = { module = "io.micrometer:micrometer-observation" }
 micrometer-observation-test   = { module = "io.micrometer:micrometer-observation-test" }
 

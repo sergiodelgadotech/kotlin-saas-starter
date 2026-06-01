@@ -7,6 +7,7 @@ import tech.sergiodelgado.saasstarter.billing.BillingService
 import tech.sergiodelgado.saasstarter.billing.Subscription
 import tech.sergiodelgado.saasstarter.billing.StripeWebhookHandler
 import tech.sergiodelgado.saasstarter.billing.SubscriptionRepository
+import tech.sergiodelgado.saasstarter.email.EmailService
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
@@ -79,8 +80,14 @@ class BillingAutoConfiguration(
         fun stripeWebhookHandler(
             repo: SubscriptionRepository,
             observationRegistry: ObjectProvider<ObservationRegistry>,
+            emailService: ObjectProvider<EmailService>,
         ): StripeWebhookHandler =
-            StripeWebhookHandler(repo, properties, observationRegistry.getIfAvailable { ObservationRegistry.NOOP })
+            StripeWebhookHandler(
+                repo,
+                properties,
+                observationRegistry.getIfAvailable { ObservationRegistry.NOOP },
+                emailService.getIfAvailable(),
+            )
 
         @Bean
         fun subscriptionAfterConvertCallback(): AfterConvertCallback<Subscription> =

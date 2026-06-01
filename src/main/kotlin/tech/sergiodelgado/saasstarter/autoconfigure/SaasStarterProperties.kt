@@ -19,6 +19,7 @@ data class SaasStarterProperties(
     val billing: Billing = Billing(),
     val security: Security = Security(),
     val web: Web = Web(),
+    val email: Email = Email(),
 ) {
     data class Session(
         val enabled: Boolean = true,
@@ -97,4 +98,12 @@ data class SaasStarterProperties(
     ) {
         data class ExceptionHandler(val enabled: Boolean = true)
     }
+
+    data class Email(
+        val enabled: Boolean = true,
+        /** Resend API key (`re_*`). Set via `RESEND_API_KEY` env var. */
+        val apiKey: String = "",
+        /** Default `from` address used when [tech.sergiodelgado.saasstarter.email.EmailMessage.from] is null. */
+        val fromAddress: String = "",
+    )
 }

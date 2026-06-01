@@ -29,6 +29,11 @@ License: The Apache Software License, Version 2.0
 https://www.apache.org/licenses/LICENSE-2.0.txt
 
 ------------------------------------------------------------------------
+com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.3
+License: The Apache Software License, Version 2.0
+http://www.apache.org/licenses/LICENSE-2.0.txt
+
+------------------------------------------------------------------------
 com.fasterxml.jackson:jackson-bom:2.21.3
 License: The Apache Software License, Version 2.0
 http://www.apache.org/licenses/LICENSE-2.0.txt
@@ -64,6 +69,26 @@ License: Apache License, Version 2.0
 http://www.apache.org/licenses/LICENSE-2.0.txt
 
 ------------------------------------------------------------------------
+com.resend:resend-java:4.13.0
+License: The MIT License
+https://opensource.org/licenses/MIT
+
+------------------------------------------------------------------------
+com.squareup.okhttp3:okhttp:4.12.0
+License: The Apache Software License, Version 2.0
+http://www.apache.org/licenses/LICENSE-2.0.txt
+
+------------------------------------------------------------------------
+com.squareup.okio:okio:3.6.0
+License: The Apache Software License, Version 2.0
+http://www.apache.org/licenses/LICENSE-2.0.txt
+
+------------------------------------------------------------------------
+com.squareup.okio:okio-jvm:3.6.0
+License: The Apache Software License, Version 2.0
+http://www.apache.org/licenses/LICENSE-2.0.txt
+
+------------------------------------------------------------------------
 com.stripe:stripe-java:29.5.0
 License: The MIT License
 https://opensource.org/licenses/MIT
@@ -79,9 +104,29 @@ License: Apache-2.0
 http://www.apache.org/licenses/LICENSE-2.0.txt
 
 ------------------------------------------------------------------------
+org.jetbrains.kotlin:kotlin-stdlib-common:2.3.21
+License: Apache-2.0
+http://www.apache.org/licenses/LICENSE-2.0.txt
+
+------------------------------------------------------------------------
+org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.10
+License: The Apache License, Version 2.0
+http://www.apache.org/licenses/LICENSE-2.0.txt
+
+------------------------------------------------------------------------
+org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10
+License: The Apache License, Version 2.0
+http://www.apache.org/licenses/LICENSE-2.0.txt
+
+------------------------------------------------------------------------
 org.jetbrains:annotations:13.0
 License: The Apache Software License, Version 2.0
 http://www.apache.org/licenses/LICENSE-2.0.txt
+
+------------------------------------------------------------------------
+org.json:json:20250517
+License: Public Domain
+https://github.com/stleary/JSON-java/blob/master/LICENSE
 
 ------------------------------------------------------------------------
 org.jspecify:jspecify:1.0.0

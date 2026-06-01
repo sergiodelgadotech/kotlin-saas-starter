@@ -7,6 +7,8 @@ import io.micrometer.observation.ObservationRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 import tech.sergiodelgado.saasstarter.autoconfigure.SaasStarterProperties
+import tech.sergiodelgado.saasstarter.email.EmailMessage
+import tech.sergiodelgado.saasstarter.email.EmailService
 import java.time.Instant
 
 @Transactional
@@ -14,6 +16,7 @@ open class StripeWebhookHandler(
     private val subscriptionRepository: SubscriptionRepository,
     private val properties: SaasStarterProperties,
     private val observationRegistry: ObservationRegistry = ObservationRegistry.NOOP,
+    private val emailService: EmailService? = null,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val planByPriceId: Map<String, String> =
@@ -79,7 +82,24 @@ open class StripeWebhookHandler(
         val invoice = event.dataObjectDeserializer.deserializeUnsafe() as Invoice
         val sub = subscriptionRepository.findByExternalCustomerId(invoice.customer) ?: return
         subscriptionRepository.save(sub.copy(status = SubscriptionStatus.PAST_DUE))
-        // TODO: send notification email via Resend
+        emailService?.let { svc ->
+            composePaymentFailedEmail(invoice, sub)?.let { msg ->
+                try {
+                    svc.send(msg)
+                } catch (e: Exception) {
+                    log.warn("Payment-failed email to ${msg.to} could not be sent: ${e.message}")
+                }
+            }
+        }
+    }
+
+    protected open fun composePaymentFailedEmail(invoice: Invoice, sub: Subscription): EmailMessage? {
+        val to = invoice.customerEmail?.takeIf { it.isNotBlank() } ?: return null
+        return EmailMessage(
+            to = to,
+            subject = "Action required: payment for your subscription failed",
+            textBody = "Your most recent payment failed. Please update your payment method to avoid service interruption.",
+        )
     }
 
     internal fun mapStatus(status: String) = when (status) {

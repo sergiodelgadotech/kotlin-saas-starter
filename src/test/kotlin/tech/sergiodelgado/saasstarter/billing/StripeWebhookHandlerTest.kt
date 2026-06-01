@@ -18,6 +18,8 @@ import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import tech.sergiodelgado.saasstarter.autoconfigure.SaasStarterProperties
+import tech.sergiodelgado.saasstarter.email.EmailMessage
+import tech.sergiodelgado.saasstarter.email.EmailService
 import java.util.UUID
 
 class StripeWebhookHandlerTest {
@@ -305,6 +307,77 @@ class StripeWebhookHandlerTest {
         expectThat(warnEvents[0].formattedMessage).isEqualTo(
             "Unknown Stripe priceId 'price_premium_pro_addon' — not configured in saasstarter.billing.plan-prices; falling back to STARTER"
         )
+    }
+
+    @Test
+    fun `handle payment failed sends email when EmailService is wired`() {
+        val emailService = mockk<EmailService>()
+        every { emailService.send(any()) } returns "msg_001"
+        val handlerWithEmail = StripeWebhookHandler(subscriptionRepository, properties, emailService = emailService)
+
+        val invoice = mockk<Invoice>()
+        val deserializer = mockk<EventDataObjectDeserializer>()
+        val event = mockk<Event>()
+        val sub = Subscription(organizationId = UUID.randomUUID(), externalCustomerId = "cus_email")
+        every { event.type } returns "invoice.payment_failed"
+        every { event.id } returns "evt_email"
+        every { event.dataObjectDeserializer } returns deserializer
+        every { deserializer.deserializeUnsafe() } returns invoice
+        every { invoice.customer } returns "cus_email"
+        every { invoice.customerEmail } returns "owner@example.com"
+        every { subscriptionRepository.findByExternalCustomerId("cus_email") } returns sub
+        every { subscriptionRepository.save(any()) } returns mockk()
+
+        handlerWithEmail.handle(event)
+
+        verify { emailService.send(match { it.to == "owner@example.com" }) }
+    }
+
+    @Test
+    fun `handle payment failed swallows EmailService send failures`() {
+        val emailService = mockk<EmailService>()
+        every { emailService.send(any()) } throws RuntimeException("SMTP down")
+        val handlerWithEmail = StripeWebhookHandler(subscriptionRepository, properties, emailService = emailService)
+
+        val invoice = mockk<Invoice>()
+        val deserializer = mockk<EventDataObjectDeserializer>()
+        val event = mockk<Event>()
+        val sub = Subscription(organizationId = UUID.randomUUID(), externalCustomerId = "cus_swallow")
+        every { event.type } returns "invoice.payment_failed"
+        every { event.id } returns "evt_swallow"
+        every { event.dataObjectDeserializer } returns deserializer
+        every { deserializer.deserializeUnsafe() } returns invoice
+        every { invoice.customer } returns "cus_swallow"
+        every { invoice.customerEmail } returns "owner@example.com"
+        every { subscriptionRepository.findByExternalCustomerId("cus_swallow") } returns sub
+        every { subscriptionRepository.save(any()) } returns mockk()
+
+        handlerWithEmail.handle(event)  // must not throw
+
+        verify { subscriptionRepository.save(match { it.status == SubscriptionStatus.PAST_DUE }) }
+    }
+
+    @Test
+    fun `handle payment failed skips email when customerEmail is blank`() {
+        val emailService = mockk<EmailService>()
+        val handlerWithEmail = StripeWebhookHandler(subscriptionRepository, properties, emailService = emailService)
+
+        val invoice = mockk<Invoice>()
+        val deserializer = mockk<EventDataObjectDeserializer>()
+        val event = mockk<Event>()
+        val sub = Subscription(organizationId = UUID.randomUUID(), externalCustomerId = "cus_noemail")
+        every { event.type } returns "invoice.payment_failed"
+        every { event.id } returns "evt_noemail"
+        every { event.dataObjectDeserializer } returns deserializer
+        every { deserializer.deserializeUnsafe() } returns invoice
+        every { invoice.customer } returns "cus_noemail"
+        every { invoice.customerEmail } returns ""
+        every { subscriptionRepository.findByExternalCustomerId("cus_noemail") } returns sub
+        every { subscriptionRepository.save(any()) } returns mockk()
+
+        handlerWithEmail.handle(event)
+
+        verify(exactly = 0) { emailService.send(any()) }
     }
 
     @Test

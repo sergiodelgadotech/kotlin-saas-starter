@@ -49,6 +49,9 @@ dependencies {
     // Stripe Java SDK — exposed in public API (BillingService, StripeWebhookHandler signatures)
     api(libs.stripe)
 
+    // Resend Java SDK — exposed in public API (ResendEmailService constructor signature)
+    api(libs.resend)
+
     // Tests
     testImplementation(platform(libs.spring.boot.bom))
     testImplementation(libs.spring.boot.starter)
