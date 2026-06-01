@@ -123,8 +123,8 @@ publishing {
                 url.set("https://github.com/sergiodelgadotech/kotlin-saas-starter")
                 licenses {
                     license {
-                        name.set("MIT License")
-                        url.set("https://opensource.org/licenses/MIT")
+                        name.set("GNU Lesser General Public License v2.1")
+                        url.set("https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt")
                     }
                 }
                 developers {
