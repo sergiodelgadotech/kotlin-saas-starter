@@ -6,14 +6,18 @@ import io.micrometer.observation.Observation
 import io.micrometer.observation.ObservationRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
+import tech.sergiodelgado.saasstarter.autoconfigure.SaasStarterProperties
 import java.time.Instant
 
 @Transactional
 open class StripeWebhookHandler(
     private val subscriptionRepository: SubscriptionRepository,
+    private val properties: SaasStarterProperties,
     private val observationRegistry: ObservationRegistry = ObservationRegistry.NOOP,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+    private val planByPriceId: Map<String, String> =
+        properties.billing.planPrices.entries.associate { (plan, price) -> price to plan }
 
     fun handle(event: Event) {
         var outcome = "handled"
@@ -88,11 +92,13 @@ open class StripeWebhookHandler(
     private fun mapPlan(stripeSub: com.stripe.model.Subscription): String {
         val priceId = stripeSub.items.data.firstOrNull()?.price?.id
             ?: return DefaultBillingPlan.STARTER.name
-        // TODO: derive plan name by looking up the priceId in saasstarter.billing.plan-prices
-        return when {
-            priceId.contains("pro")        -> DefaultBillingPlan.PRO.name
-            priceId.contains("enterprise") -> DefaultBillingPlan.ENTERPRISE.name
-            else                           -> DefaultBillingPlan.STARTER.name
+        return planByPriceId[priceId] ?: run {
+            log.warn(
+                "Unknown Stripe priceId '{}' — not configured in saasstarter.billing.plan-prices; falling back to {}",
+                priceId,
+                DefaultBillingPlan.STARTER.name,
+            )
+            DefaultBillingPlan.STARTER.name
         }
     }
 }

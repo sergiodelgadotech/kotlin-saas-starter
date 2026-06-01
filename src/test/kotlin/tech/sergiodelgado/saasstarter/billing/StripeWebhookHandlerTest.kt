@@ -1,5 +1,9 @@
 package tech.sergiodelgado.saasstarter.billing
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import com.stripe.model.Event
 import com.stripe.model.EventDataObjectDeserializer
 import com.stripe.model.Invoice
@@ -9,14 +13,25 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Test
+import org.slf4j.LoggerFactory
 import strikt.api.expectThat
+import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
+import tech.sergiodelgado.saasstarter.autoconfigure.SaasStarterProperties
 import java.util.UUID
 
 class StripeWebhookHandlerTest {
 
     private val subscriptionRepository = mockk<SubscriptionRepository>()
-    private val handler = StripeWebhookHandler(subscriptionRepository)
+    private val properties = SaasStarterProperties(
+        billing = SaasStarterProperties.Billing(
+            planPrices = mapOf(
+                DefaultBillingPlan.PRO.name        to "price_pro_monthly",
+                DefaultBillingPlan.ENTERPRISE.name to "price_enterprise_yearly",
+            ),
+        ),
+    )
+    private val handler = StripeWebhookHandler(subscriptionRepository, properties)
 
     @Test
     fun `mapStatus maps Stripe status strings to SubscriptionStatus`() {
@@ -179,7 +194,7 @@ class StripeWebhookHandlerTest {
     @Test
     fun `handle records observation with outcome skipped for unknown event type`() {
         val observationRegistry = TestObservationRegistry.create()
-        val observedHandler = StripeWebhookHandler(subscriptionRepository, observationRegistry)
+        val observedHandler = StripeWebhookHandler(subscriptionRepository, properties, observationRegistry)
         val event = mockk<Event>()
         every { event.type } returns "totally.unknown.event"
         every { event.id } returns "evt_obs_unknown"
@@ -197,7 +212,7 @@ class StripeWebhookHandlerTest {
     @Test
     fun `handle records observation with outcome handled for known event type`() {
         val observationRegistry = TestObservationRegistry.create()
-        val observedHandler = StripeWebhookHandler(subscriptionRepository, observationRegistry)
+        val observedHandler = StripeWebhookHandler(subscriptionRepository, properties, observationRegistry)
         val invoice = mockk<Invoice>()
         val deserializer = mockk<EventDataObjectDeserializer>()
         val event = mockk<Event>()
@@ -216,5 +231,114 @@ class StripeWebhookHandlerTest {
             .hasLowCardinalityKeyValue("event.type", "invoice.payment_failed")
             .hasHighCardinalityKeyValue("event.id", "evt_obs_handled")
             .hasLowCardinalityKeyValue("outcome", "handled")
+    }
+
+    @Test
+    fun `mapPlan resolves enterprise priceId to ENTERPRISE via plan-prices map`() {
+        val stripeSub = mockk<com.stripe.model.Subscription>()
+        val deserializer = mockk<EventDataObjectDeserializer>()
+        val event = mockk<Event>()
+        val item = mockk<com.stripe.model.SubscriptionItem>()
+        val itemCollection = mockk<com.stripe.model.SubscriptionItemCollection>()
+        val price = mockk<com.stripe.model.Price>()
+        val sub = Subscription(organizationId = UUID.randomUUID(), externalCustomerId = "cus_ent")
+
+        every { event.type } returns "customer.subscription.updated"
+        every { event.id } returns "evt_ent"
+        every { event.dataObjectDeserializer } returns deserializer
+        every { deserializer.deserializeUnsafe() } returns stripeSub
+        every { stripeSub.customer } returns "cus_ent"
+        every { subscriptionRepository.findByExternalCustomerId("cus_ent") } returns sub
+        every { stripeSub.items } returns itemCollection
+        every { itemCollection.data } returns mutableListOf(item)
+        every { item.currentPeriodEnd } returns 1_700_000_000L
+        every { item.price } returns price
+        every { price.id } returns "price_enterprise_yearly"
+        every { stripeSub.id } returns "sub_ent_123"
+        every { stripeSub.status } returns "active"
+        every { stripeSub.cancelAtPeriodEnd } returns false
+        every { subscriptionRepository.save(any()) } returns mockk()
+
+        handler.handle(event)
+
+        verify { subscriptionRepository.save(match { it.plan == DefaultBillingPlan.ENTERPRISE.name }) }
+    }
+
+    @Test
+    fun `mapPlan falls back to STARTER and emits WARN for unknown priceId`() {
+        val stripeSub = mockk<com.stripe.model.Subscription>()
+        val deserializer = mockk<EventDataObjectDeserializer>()
+        val event = mockk<Event>()
+        val item = mockk<com.stripe.model.SubscriptionItem>()
+        val itemCollection = mockk<com.stripe.model.SubscriptionItemCollection>()
+        val price = mockk<com.stripe.model.Price>()
+        val sub = Subscription(organizationId = UUID.randomUUID(), externalCustomerId = "cus_unknown")
+
+        every { event.type } returns "customer.subscription.updated"
+        every { event.id } returns "evt_unknown_price"
+        every { event.dataObjectDeserializer } returns deserializer
+        every { deserializer.deserializeUnsafe() } returns stripeSub
+        every { stripeSub.customer } returns "cus_unknown"
+        every { subscriptionRepository.findByExternalCustomerId("cus_unknown") } returns sub
+        every { stripeSub.items } returns itemCollection
+        every { itemCollection.data } returns mutableListOf(item)
+        every { item.currentPeriodEnd } returns 1_700_000_000L
+        every { item.price } returns price
+        every { price.id } returns "price_premium_pro_addon"
+        every { stripeSub.id } returns "sub_unknown_123"
+        every { stripeSub.status } returns "active"
+        every { stripeSub.cancelAtPeriodEnd } returns false
+        every { subscriptionRepository.save(any()) } returns mockk()
+
+        val listAppender = ListAppender<ILoggingEvent>().also { it.start() }
+        val logger = LoggerFactory.getLogger(StripeWebhookHandler::class.java) as Logger
+        logger.addAppender(listAppender)
+        try {
+            handler.handle(event)
+        } finally {
+            logger.detachAppender(listAppender)
+        }
+
+        verify { subscriptionRepository.save(match { it.plan == DefaultBillingPlan.STARTER.name }) }
+        val warnEvents = listAppender.list.filter { it.level == Level.WARN }
+        expectThat(warnEvents).hasSize(1)
+        expectThat(warnEvents[0].formattedMessage).isEqualTo(
+            "Unknown Stripe priceId 'price_premium_pro_addon' — not configured in saasstarter.billing.plan-prices; falling back to STARTER"
+        )
+    }
+
+    @Test
+    fun `mapPlan returns STARTER silently when subscription has no items`() {
+        val stripeSub = mockk<com.stripe.model.Subscription>()
+        val deserializer = mockk<EventDataObjectDeserializer>()
+        val event = mockk<Event>()
+        val itemCollection = mockk<com.stripe.model.SubscriptionItemCollection>()
+        val sub = Subscription(organizationId = UUID.randomUUID(), externalCustomerId = "cus_noitems")
+
+        every { event.type } returns "customer.subscription.updated"
+        every { event.id } returns "evt_noitems"
+        every { event.dataObjectDeserializer } returns deserializer
+        every { deserializer.deserializeUnsafe() } returns stripeSub
+        every { stripeSub.customer } returns "cus_noitems"
+        every { subscriptionRepository.findByExternalCustomerId("cus_noitems") } returns sub
+        every { stripeSub.items } returns itemCollection
+        every { itemCollection.data } returns mutableListOf()
+        every { stripeSub.id } returns "sub_noitems_123"
+        every { stripeSub.status } returns "trialing"
+        every { stripeSub.cancelAtPeriodEnd } returns false
+        every { subscriptionRepository.save(any()) } returns mockk()
+
+        val listAppender = ListAppender<ILoggingEvent>().also { it.start() }
+        val logger = LoggerFactory.getLogger(StripeWebhookHandler::class.java) as Logger
+        logger.addAppender(listAppender)
+        try {
+            handler.handle(event)
+        } finally {
+            logger.detachAppender(listAppender)
+        }
+
+        verify { subscriptionRepository.save(match { it.plan == DefaultBillingPlan.STARTER.name }) }
+        val warnEvents = listAppender.list.filter { it.level == Level.WARN }
+        expectThat(warnEvents).hasSize(0)
     }
 }

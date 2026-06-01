@@ -80,7 +80,7 @@ class BillingAutoConfiguration(
             repo: SubscriptionRepository,
             observationRegistry: ObjectProvider<ObservationRegistry>,
         ): StripeWebhookHandler =
-            StripeWebhookHandler(repo, observationRegistry.getIfAvailable { ObservationRegistry.NOOP })
+            StripeWebhookHandler(repo, properties, observationRegistry.getIfAvailable { ObservationRegistry.NOOP })
 
         @Bean
         fun subscriptionAfterConvertCallback(): AfterConvertCallback<Subscription> =
