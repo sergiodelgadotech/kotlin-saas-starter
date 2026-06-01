@@ -16,7 +16,7 @@ This library captures the infrastructure code that every SaaS repeats — multit
 // build.gradle.kts of your SaaS application
 repositories {
     maven {
-        url = uri("https://maven.pkg.github.com/granchi/kotlin-saas-starter")
+        url = uri("https://maven.pkg.github.com/sergiodelgadotech/kotlin-saas-starter")
         credentials {
             username = providers.gradleProperty("gpr.user").orNull
                 ?: System.getenv("GITHUB_ACTOR")
@@ -27,7 +27,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.granchi:kotlin-saas-starter:0.1.0")
+    implementation("tech.sergiodelgado:kotlin-saas-starter:0.6.0")
 }
 ```
 
