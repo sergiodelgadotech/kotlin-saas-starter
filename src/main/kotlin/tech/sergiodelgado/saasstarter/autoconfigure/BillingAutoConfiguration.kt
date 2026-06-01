@@ -1,6 +1,7 @@
 package tech.sergiodelgado.saasstarter.autoconfigure
 
 import com.stripe.Stripe
+import com.stripe.StripeClient
 import io.micrometer.observation.ObservationRegistry
 import tech.sergiodelgado.saasstarter.billing.BillingService
 import tech.sergiodelgado.saasstarter.billing.Subscription
@@ -66,8 +67,12 @@ class BillingAutoConfiguration(
 
         @Bean
         @ConditionalOnMissingBean
-        fun billingService(repo: SubscriptionRepository): BillingService =
-            BillingService(repo, properties)
+        fun stripeClient(): StripeClient = StripeClient(properties.billing.apiKey)
+
+        @Bean
+        @ConditionalOnMissingBean
+        fun billingService(repo: SubscriptionRepository, stripeClient: StripeClient): BillingService =
+            BillingService(repo, properties, stripeClient)
 
         @Bean
         @ConditionalOnMissingBean

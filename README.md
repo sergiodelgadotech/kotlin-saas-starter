@@ -42,6 +42,8 @@ dependencies {
 | `jobs`          | Tenant-aware Jobrunr execution — automatic context propagation |
 | `validation`    | Konform helpers + `DomainValidationException` |
 | `web`           | `GlobalExceptionHandler` base for consistent error responses |
+| `billing`       | `BillingService` for Stripe customer/subscription lifecycle, checkout, and customer portal |
+| `organization`  | `OrganizationService` with members, invites, and roles (built on top of `tenant` + `lock`) |
 | `observability` | Correlation ID propagation, tenant MDC, and Micrometer observation tagging |
 
 ## Wiring it into your app
@@ -115,6 +117,45 @@ This library does not add custom health indicators. Instead, it leverages Spring
 - **Jobrunr** — `JobRunrHealthIndicator` is auto-configured by `jobrunr-spring-boot-4-starter`. It reports the background job server status (`running`, `stopped`, or `disabled`). Disable with `management.health.jobrunr.enabled=false`.
 
 Both are enabled by default. Access health data via `/actuator/health` (or `/actuator/health/{indicator}` for granular checks).
+
+## Billing
+
+`BillingService` wraps Stripe for the customer/subscription lifecycle. Consumers own org creation; the starter owns the billing-side state.
+
+### Onboarding flow
+
+```kotlin
+// 1. Consumer creates the Organization in its own domain.
+val org = organizationService.create(...)
+
+// 2. Create the Stripe customer and persist a TRIALING subscription.
+val customerId = billingService.createCustomer(
+    organizationId = org.id,
+    email = owner.email,
+    name = org.name,
+)
+billingService.ensureSubscription(org.id, customerId)
+
+// 3. When the user upgrades, redirect them to Stripe Checkout.
+val checkoutUrl = billingService.createCheckoutSession(DefaultBillingPlan.PRO)
+```
+
+`ensureSubscription` is idempotent on a matching customer ID and throws `IllegalStateException`
+if the same org is bound to a different Stripe customer — surfacing duplicate-customer bugs early.
+
+Configure Stripe via:
+
+```yaml
+saasstarter:
+  billing:
+    api-key: ${STRIPE_API_KEY}
+    success-url: https://app.example.com/billing/success
+    cancel-url: https://app.example.com/billing/cancel
+    portal-return-url: https://app.example.com/settings/billing
+    plan-prices:
+      STARTER: price_xxx
+      PRO: price_yyy
+```
 
 ## Project tracking
 
