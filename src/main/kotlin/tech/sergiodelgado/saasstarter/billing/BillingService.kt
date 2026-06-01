@@ -1,9 +1,9 @@
 package tech.sergiodelgado.saasstarter.billing
 
 import com.stripe.StripeClient
-import com.stripe.model.checkout.Session
 import com.stripe.param.CustomerCreateParams
-import com.stripe.param.checkout.SessionCreateParams
+import com.stripe.param.billingportal.SessionCreateParams as PortalSessionCreateParams
+import com.stripe.param.checkout.SessionCreateParams as CheckoutSessionCreateParams
 import tech.sergiodelgado.saasstarter.autoconfigure.SaasStarterProperties
 import tech.sergiodelgado.saasstarter.tenant.TenantContext
 import tech.sergiodelgado.saasstarter.web.NotFoundException
@@ -24,12 +24,12 @@ open class BillingService(
     fun createCheckoutSession(plan: BillingPlan): String {
         val sub = currentSubscription()
         val priceId = priceIdFor(plan)
-        val session = Session.create(
-            SessionCreateParams.builder()
+        return stripeClient.checkout().sessions().create(
+            CheckoutSessionCreateParams.builder()
                 .setCustomer(sub.externalCustomerId)
-                .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
+                .setMode(CheckoutSessionCreateParams.Mode.SUBSCRIPTION)
                 .addLineItem(
-                    SessionCreateParams.LineItem.builder()
+                    CheckoutSessionCreateParams.LineItem.builder()
                         .setPrice(priceId)
                         .setQuantity(1)
                         .build()
@@ -37,14 +37,13 @@ open class BillingService(
                 .setSuccessUrl(properties.billing.successUrl)
                 .setCancelUrl(properties.billing.cancelUrl)
                 .build()
-        )
-        return session.url
+        ).url
     }
 
     fun createPortalSession(): String {
         val sub = currentSubscription()
-        return com.stripe.model.billingportal.Session.create(
-            com.stripe.param.billingportal.SessionCreateParams.builder()
+        return stripeClient.billingPortal().sessions().create(
+            PortalSessionCreateParams.builder()
                 .setCustomer(sub.externalCustomerId)
                 .setReturnUrl(properties.billing.portalReturnUrl)
                 .build()

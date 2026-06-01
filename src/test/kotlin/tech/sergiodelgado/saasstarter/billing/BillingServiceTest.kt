@@ -2,8 +2,16 @@ package tech.sergiodelgado.saasstarter.billing
 
 import com.stripe.StripeClient
 import com.stripe.model.Customer
+import com.stripe.model.billingportal.Session as PortalSession
+import com.stripe.model.checkout.Session as CheckoutSession
 import com.stripe.param.CustomerCreateParams
+import com.stripe.param.billingportal.SessionCreateParams as PortalSessionCreateParams
+import com.stripe.param.checkout.SessionCreateParams as CheckoutSessionCreateParams
+import com.stripe.service.BillingPortalService
+import com.stripe.service.CheckoutService
 import com.stripe.service.CustomerService
+import com.stripe.service.billingportal.SessionService as PortalSessionService
+import com.stripe.service.checkout.SessionService as CheckoutSessionService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -25,9 +33,19 @@ class BillingServiceTest {
 
     private val subscriptionRepository = mockk<SubscriptionRepository>()
     private val mockCustomerService = mockk<CustomerService>()
+    private val mockCheckoutService = mockk<CheckoutService>()
+    private val mockCheckoutSessionService = mockk<CheckoutSessionService>()
+    private val mockPortalService = mockk<BillingPortalService>()
+    private val mockPortalSessionService = mockk<PortalSessionService>()
     private val stripeClient = mockk<StripeClient>()
     private val properties = SaasStarterProperties(
-        billing = SaasStarterProperties.Billing(apiKey = "sk_test_dummy")
+        billing = SaasStarterProperties.Billing(
+            apiKey = "sk_test_dummy",
+            successUrl = "https://example.com/success",
+            cancelUrl = "https://example.com/cancel",
+            portalReturnUrl = "https://example.com/portal",
+            planPrices = mapOf("PRO" to "price_pro_123"),
+        )
     )
     private val service = BillingService(subscriptionRepository, properties, stripeClient)
     private val orgId: UUID = UUID.randomUUID()
@@ -36,6 +54,10 @@ class BillingServiceTest {
     fun setUp() {
         TenantContext.set(orgId)
         every { stripeClient.customers() } returns mockCustomerService
+        every { stripeClient.checkout() } returns mockCheckoutService
+        every { mockCheckoutService.sessions() } returns mockCheckoutSessionService
+        every { stripeClient.billingPortal() } returns mockPortalService
+        every { mockPortalService.sessions() } returns mockPortalSessionService
     }
 
     @AfterEach
@@ -58,6 +80,47 @@ class BillingServiceTest {
         every { subscriptionRepository.findByOrganizationId(orgId) } returns null
 
         assertThrows<NotFoundException> { service.currentSubscription() }
+    }
+
+    // ── createCheckoutSession ─────────────────────────────────────────────────
+
+    @Test
+    fun `createCheckoutSession passes customer, price, mode, and URLs to Stripe via StripeClient`() {
+        val sub = Subscription(organizationId = orgId, externalCustomerId = "cus_abc")
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns sub
+        val mockSession = mockk<CheckoutSession> { every { url } returns "https://checkout.stripe.com/pay/cs_test" }
+        val slot = slot<CheckoutSessionCreateParams>()
+        every { mockCheckoutSessionService.create(capture(slot)) } returns mockSession
+
+        val result = service.createCheckoutSession(DefaultBillingPlan.PRO)
+
+        expectThat(result).isEqualTo("https://checkout.stripe.com/pay/cs_test")
+        val params = slot.captured
+        expectThat(params.customer).isEqualTo("cus_abc")
+        expectThat(params.mode).isEqualTo(CheckoutSessionCreateParams.Mode.SUBSCRIPTION)
+        val lineItem = params.lineItems.single()
+        expectThat(lineItem.price).isEqualTo("price_pro_123")
+        expectThat(lineItem.quantity).isEqualTo(1L)
+        expectThat(params.successUrl).isEqualTo("https://example.com/success")
+        expectThat(params.cancelUrl).isEqualTo("https://example.com/cancel")
+    }
+
+    // ── createPortalSession ───────────────────────────────────────────────────
+
+    @Test
+    fun `createPortalSession passes customer and returnUrl to Stripe via StripeClient`() {
+        val sub = Subscription(organizationId = orgId, externalCustomerId = "cus_abc")
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns sub
+        val mockSession = mockk<PortalSession> { every { url } returns "https://billing.stripe.com/session/portal_test" }
+        val slot = slot<PortalSessionCreateParams>()
+        every { mockPortalSessionService.create(capture(slot)) } returns mockSession
+
+        val result = service.createPortalSession()
+
+        expectThat(result).isEqualTo("https://billing.stripe.com/session/portal_test")
+        val params = slot.captured
+        expectThat(params.customer).isEqualTo("cus_abc")
+        expectThat(params.returnUrl).isEqualTo("https://example.com/portal")
     }
 
     // ── createCustomer ────────────────────────────────────────────────────────
