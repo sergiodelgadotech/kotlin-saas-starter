@@ -48,6 +48,7 @@ class TenantInterceptorTest {
 
         expectThat(result).isTrue()
         expectThat(TenantContext.get()).isEqualTo(tenantId)
+        verify { request.setAttribute(TenantContext.REQUEST_ATTRIBUTE, tenantId) }
     }
 
     @Test

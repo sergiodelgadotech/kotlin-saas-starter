@@ -26,6 +26,7 @@ class TenantInterceptor(
             }
 
         TenantContext.set(tenantId)
+        request.setAttribute(TenantContext.REQUEST_ATTRIBUTE, tenantId)
         return true
     }
 

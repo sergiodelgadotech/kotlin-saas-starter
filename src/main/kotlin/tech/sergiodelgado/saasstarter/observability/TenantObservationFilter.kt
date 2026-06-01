@@ -1,27 +1,36 @@
 package tech.sergiodelgado.saasstarter.observability
 
+import io.micrometer.common.KeyValue
 import io.micrometer.observation.Observation
 import io.micrometer.observation.ObservationFilter
+import org.springframework.http.server.observation.ServerRequestObservationContext
 import tech.sergiodelgado.saasstarter.tenant.TenantContext
 
 /**
  * Micrometer [ObservationFilter] that tags every observation with the current tenant ID.
  *
- * When [TenantContext.isPresent] returns true, adds `tenant.id` as a low-cardinality
- * key-value on the [Observation.Context]. Low cardinality is appropriate for B2B SaaS
- * products with hundreds or thousands of tenants.
+ * Two resolution paths:
+ * 1. [TenantContext.isPresent] — used for non-HTTP observations (lock, job, rate limit, webhook).
+ * 2. `ServerRequestObservationContext.carrier` attribute — used for HTTP server observations,
+ *    where [TenantContext] may already be cleared by `TenantInterceptor.afterCompletion()` before
+ *    `ServerHttpObservationFilter` stops the observation in its finally block.
+ *    [TenantInterceptor] writes [TenantContext.REQUEST_ATTRIBUTE] on the request so the tenant ID
+ *    survives for the full duration of the filter chain.
  *
- * **Cardinality warning:** for consumer-scale products where tenants map 1:1 to end-users
- * (millions of users), override this filter and use `highCardinalityKeyValue` instead to
- * avoid metric label explosion.
+ * Low cardinality is appropriate for B2B SaaS with hundreds-to-thousands of tenants.
+ * For consumer-scale products (millions of users), use `highCardinalityKeyValue` instead.
  */
 class TenantObservationFilter : ObservationFilter {
 
     override fun map(context: Observation.Context): Observation.Context {
-        if (TenantContext.isPresent()) {
-            context.addLowCardinalityKeyValue(
-                io.micrometer.common.KeyValue.of("tenant.id", TenantContext.get().toString())
-            )
+        val tenantId = when {
+            TenantContext.isPresent() -> TenantContext.get().toString()
+            context is ServerRequestObservationContext ->
+                context.carrier?.getAttribute(TenantContext.REQUEST_ATTRIBUTE)?.toString()
+            else -> null
+        }
+        if (tenantId != null) {
+            context.addLowCardinalityKeyValue(KeyValue.of("tenant.id", tenantId))
         }
         return context
     }

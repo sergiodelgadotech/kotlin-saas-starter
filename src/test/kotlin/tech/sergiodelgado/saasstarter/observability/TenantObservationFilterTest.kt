@@ -5,6 +5,9 @@ import io.micrometer.observation.tck.TestObservationRegistry
 import io.micrometer.observation.tck.TestObservationRegistryAssert
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.springframework.http.server.observation.ServerRequestObservationContext
+import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.mock.web.MockHttpServletResponse
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
@@ -55,5 +58,32 @@ class TenantObservationFilterTest {
             .hasObservationWithNameEqualTo("test.observation")
             .that()
             .hasLowCardinalityKeyValue("tenant.id", tenantId.toString())
+    }
+
+    @Test
+    fun `reads tenant_id from ServerRequestObservationContext carrier attribute when TenantContext is cleared`() {
+        val tenantId = UUID.randomUUID()
+        val request = MockHttpServletRequest()
+        request.setAttribute(TenantContext.REQUEST_ATTRIBUTE, tenantId)
+
+        TenantContext.clear() // simulate afterCompletion having already run
+
+        val context = ServerRequestObservationContext(request, MockHttpServletResponse())
+        val result = filter.map(context)
+
+        expectThat(result.lowCardinalityKeyValues.find { it.key == "tenant.id" }?.value)
+            .isEqualTo(tenantId.toString())
+    }
+
+    @Test
+    fun `does not add tenant_id when TenantContext is absent and no request attribute is set`() {
+        val request = MockHttpServletRequest()
+        TenantContext.clear()
+
+        val context = ServerRequestObservationContext(request, MockHttpServletResponse())
+        val result = filter.map(context)
+
+        expectThat(result.lowCardinalityKeyValues.find { it.key == "tenant.id" }?.value)
+            .isNull()
     }
 }

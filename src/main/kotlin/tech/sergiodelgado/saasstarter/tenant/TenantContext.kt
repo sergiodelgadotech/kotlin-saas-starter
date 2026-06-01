@@ -3,6 +3,10 @@ package tech.sergiodelgado.saasstarter.tenant
 import java.util.UUID
 
 object TenantContext {
+    // Servlet request attribute key written by TenantInterceptor so TenantObservationFilter
+    // can read the tenant ID even after afterCompletion() clears the ThreadLocal.
+    const val REQUEST_ATTRIBUTE = "saasstarter.tenant.id"
+
     private val current = ThreadLocal<UUID>()
 
     fun set(tenantId: UUID) = current.set(tenantId)
