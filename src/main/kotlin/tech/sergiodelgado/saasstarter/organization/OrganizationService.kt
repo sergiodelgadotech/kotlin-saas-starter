@@ -4,6 +4,8 @@ import tech.sergiodelgado.saasstarter.lock.RedisLockService
 import tech.sergiodelgado.saasstarter.tenant.TenantContext
 import tech.sergiodelgado.saasstarter.web.NotFoundException
 import org.springframework.cache.annotation.CacheEvict
+import org.springframework.context.ApplicationEventPublisher
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
@@ -12,6 +14,7 @@ open class OrganizationService(
     private val organizationRepository: OrganizationRepository,
     private val memberRepository: MemberRepository,
     private val lockService: RedisLockService,
+    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
 
     fun current(): Organization =
@@ -28,9 +31,19 @@ open class OrganizationService(
             check(!memberRepository.existsByOrganizationIdAndExternalUserId(orgId, externalUserId)) {
                 "User is already a member of this organization"
             }
-            memberRepository.save(
+            val saved = memberRepository.save(
                 Member(organizationId = orgId, externalUserId = externalUserId, role = role)
             )
+            val actor = SecurityContextHolder.getContext().authentication?.name ?: "system"
+            applicationEventPublisher.publishEvent(
+                MemberInvitedEvent(
+                    organizationId = orgId,
+                    memberId = saved.id,
+                    invitedExternalUserId = externalUserId,
+                    actorExternalUserId = actor,
+                )
+            )
+            saved
         }
     }
 

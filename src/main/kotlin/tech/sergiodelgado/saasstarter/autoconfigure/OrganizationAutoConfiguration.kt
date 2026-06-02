@@ -9,6 +9,7 @@ import tech.sergiodelgado.saasstarter.organization.OrganizationService
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories
@@ -51,8 +52,9 @@ class OrganizationAutoConfiguration {
             organizationRepository: OrganizationRepository,
             memberRepository: MemberRepository,
             lockService: RedisLockService,
+            applicationEventPublisher: ApplicationEventPublisher,
         ): OrganizationService =
-            OrganizationService(organizationRepository, memberRepository, lockService)
+            OrganizationService(organizationRepository, memberRepository, lockService, applicationEventPublisher)
 
         @Bean
         fun organizationAfterConvertCallback(): AfterConvertCallback<Organization> =

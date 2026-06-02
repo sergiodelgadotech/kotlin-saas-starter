@@ -4,13 +4,16 @@ import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotEmpty
 import tech.sergiodelgado.saasstarter.lock.RedisLockService
 import tech.sergiodelgado.saasstarter.tenant.TenantContext
 import tech.sergiodelgado.saasstarter.web.NotFoundException
@@ -22,7 +25,8 @@ class OrganizationServiceTest {
     private val orgRepo = mockk<OrganizationRepository>()
     private val memberRepo = mockk<MemberRepository>()
     private val lockService = mockk<RedisLockService>()
-    private val service = OrganizationService(orgRepo, memberRepo, lockService)
+    private val eventPublisher = mockk<ApplicationEventPublisher>(relaxed = true)
+    private val service = OrganizationService(orgRepo, memberRepo, lockService, eventPublisher)
     private val orgId = UUID.randomUUID()
 
     @BeforeEach
@@ -79,6 +83,28 @@ class OrganizationServiceTest {
         every { memberRepo.existsByOrganizationIdAndExternalUserId(orgId, userId) } returns true
 
         assertThrows<IllegalStateException> { service.inviteMember(userId) }
+    }
+
+    @Test
+    fun `inviteMember publishes MemberInvitedEvent after saving`() {
+        val userId = "user-event-test"
+        val savedMember = Member(id = UUID.randomUUID(), organizationId = orgId, externalUserId = userId)
+        every { lockService.withLock<Member>(any(), any(), any()) } answers {
+            @Suppress("UNCHECKED_CAST")
+            (args[2] as Function0<Member>).invoke()
+        }
+        every { memberRepo.existsByOrganizationIdAndExternalUserId(orgId, userId) } returns false
+        every { memberRepo.save(any()) } returns savedMember
+
+        service.inviteMember(userId)
+
+        val eventSlot = slot<MemberInvitedEvent>()
+        verify { eventPublisher.publishEvent(capture(eventSlot)) }
+        val event = eventSlot.captured
+        expectThat(event.organizationId).isEqualTo(orgId)
+        expectThat(event.memberId).isEqualTo(savedMember.id)
+        expectThat(event.invitedExternalUserId).isEqualTo(userId)
+        expectThat(event.actorExternalUserId).isEqualTo("system")
     }
 
     @Test

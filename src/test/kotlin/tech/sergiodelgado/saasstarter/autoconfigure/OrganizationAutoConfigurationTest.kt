@@ -2,6 +2,7 @@ package tech.sergiodelgado.saasstarter.autoconfigure
 
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isA
@@ -33,6 +34,7 @@ class OrganizationAutoConfigurationTest {
             mockk<OrganizationRepository>(),
             mockk<MemberRepository>(),
             mockk<RedisLockService>(),
+            mockk<ApplicationEventPublisher>(),
         )
         expectThat(service).isA<OrganizationService>()
     }
