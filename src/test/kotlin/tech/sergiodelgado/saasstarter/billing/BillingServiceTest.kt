@@ -23,6 +23,7 @@ import org.junit.jupiter.api.assertThrows
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNull
 import strikt.assertions.isSameInstanceAs
 import tech.sergiodelgado.saasstarter.autoconfigure.SaasStarterProperties
 import tech.sergiodelgado.saasstarter.tenant.TenantContext
@@ -76,10 +77,10 @@ class BillingServiceTest {
     }
 
     @Test
-    fun `currentSubscription throws NotFoundException when no subscription exists`() {
+    fun `currentSubscription returns null when no subscription exists`() {
         every { subscriptionRepository.findByOrganizationId(orgId) } returns null
 
-        assertThrows<NotFoundException> { service.currentSubscription() }
+        expectThat(service.currentSubscription()).isNull()
     }
 
     // ── createCheckoutSession ─────────────────────────────────────────────────

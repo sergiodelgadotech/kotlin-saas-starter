@@ -17,12 +17,11 @@ open class BillingService(
     private val stripeClient: StripeClient,
 ) {
 
-    fun currentSubscription(): Subscription =
+    fun currentSubscription(): Subscription? =
         subscriptionRepository.findByOrganizationId(TenantContext.get())
-            ?: throw NotFoundException("No subscription found for organization")
 
     fun createCheckoutSession(plan: BillingPlan): String {
-        val sub = currentSubscription()
+        val sub = currentSubscription() ?: throw NotFoundException("No subscription found for organization")
         val priceId = priceIdFor(plan)
         return stripeClient.checkout().sessions().create(
             CheckoutSessionCreateParams.builder()
@@ -41,7 +40,7 @@ open class BillingService(
     }
 
     fun createPortalSession(): String {
-        val sub = currentSubscription()
+        val sub = currentSubscription() ?: throw NotFoundException("No subscription found for organization")
         return stripeClient.billingPortal().sessions().create(
             PortalSessionCreateParams.builder()
                 .setCustomer(sub.externalCustomerId)
