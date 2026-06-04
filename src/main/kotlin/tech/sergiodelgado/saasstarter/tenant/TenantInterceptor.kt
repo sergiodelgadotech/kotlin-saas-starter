@@ -3,6 +3,8 @@ package tech.sergiodelgado.saasstarter.tenant
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import tech.sergiodelgado.saasstarter.security.JwtAuthFilter
+import org.springframework.security.authentication.AnonymousAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.servlet.HandlerInterceptor
 
 class TenantInterceptor(
@@ -14,7 +16,12 @@ class TenantInterceptor(
         response: HttpServletResponse,
         handler: Any
     ): Boolean {
-        val userId = JwtAuthFilter.getUserId(request) ?: return true
+        val userId = JwtAuthFilter.getUserId(request)
+            ?: SecurityContextHolder.getContext().authentication
+                ?.takeIf { it.isAuthenticated && it !is AnonymousAuthenticationToken }
+                ?.name
+                ?.takeIf { it.isNotBlank() }
+            ?: return true
 
         val tenantId = tenantResolver.resolveTenantId(userId)
             ?: run {
