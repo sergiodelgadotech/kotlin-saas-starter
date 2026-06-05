@@ -20,7 +20,6 @@ data class Organization(
     @Id @get:JvmName("entityId") val id: UUID = UUID.randomUUID(),
     val name: String,
     val slug: String,
-    val plan: String = "starter",
     val createdAt: Instant = Instant.now(),
 ) : Persistable<UUID> {
     /**
