@@ -17,9 +17,12 @@ interface MemberRepository : CrudRepository<Member, UUID> {
      * Cached — runs on every authenticated request.
      * Eviction is handled by OrganizationService.removeMember.
      */
+    // Returns the UUID as String so Redis can cache it safely — scalar JSON strings
+    // deserialize as String regardless of typing configuration (no @class wrapper possible).
+    // Callers convert to UUID via UUID.fromString().
     @Cacheable("tenant-by-user", key = "#userId")
     @Query("SELECT organization_id FROM members WHERE external_user_id = :userId")
-    fun findOrganizationIdByUserId(userId: String): UUID?
+    fun findOrganizationIdByUserId(userId: String): String?
 
     fun existsByOrganizationIdAndExternalUserId(organizationId: UUID, externalUserId: String): Boolean
 }
