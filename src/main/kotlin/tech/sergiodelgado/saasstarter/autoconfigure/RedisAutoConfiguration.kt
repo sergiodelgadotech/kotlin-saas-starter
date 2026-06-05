@@ -49,6 +49,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer
 @EnableCaching
 class RedisAutoConfiguration {
 
+    @Suppress("DEPRECATION") // GenericJackson2JsonRedisSerializer deprecated in SDR 4.x; see jsonSerializer() comment
     @Configuration(proxyBeanMethods = false)
     class BeansConfig {
 
@@ -58,9 +59,9 @@ class RedisAutoConfiguration {
             RedisTemplate<String, Any>().apply {
                 connectionFactory = factory
                 keySerializer = StringRedisSerializer()
-                valueSerializer = GenericJackson2JsonRedisSerializer()
+                valueSerializer = jsonSerializer()
                 hashKeySerializer = StringRedisSerializer()
-                hashValueSerializer = GenericJackson2JsonRedisSerializer()
+                hashValueSerializer = jsonSerializer()
             }
 
         @Bean
@@ -96,7 +97,21 @@ class RedisAutoConfiguration {
                 )
                 .serializeValuesWith(
                     RedisSerializationContext.SerializationPair
-                        .fromSerializer(GenericJackson2JsonRedisSerializer())
+                        .fromSerializer(jsonSerializer())
                 )
+
+        // The no-arg constructor uses NON_FINAL typing, which excludes final classes like
+        // UUID: cache hits deserialize them as String, causing a ClassCastException in the
+        // JDK repository proxy. The builder's defaultTyping(true) installs Spring Data
+        // Redis's TypeResolverBuilder (configured with EVERYTHING typing), so final-class
+        // values carry @class metadata and round-trip correctly.
+        // GenericJackson2JsonRedisSerializer is deprecated in SDR 4.x in favour of the
+        // Jackson 3.x variant, but that variant dropped EVERYTHING typing; the 2.x class
+        // is still on the runtime classpath (jackson-databind 2.21.x) so this is safe.
+        @Suppress("DEPRECATION")
+        private fun jsonSerializer(): GenericJackson2JsonRedisSerializer =
+            GenericJackson2JsonRedisSerializer.builder()
+                .defaultTyping(true)
+                .build()
     }
 }
