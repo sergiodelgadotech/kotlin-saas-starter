@@ -8,6 +8,7 @@ dependency-license-report = "3.1.2"
 jobrunr           = "8.6.1"
 konform           = "0.11.1"
 mockk             = "1.14.11"
+springmockk       = "5.0.1"
 strikt            = "0.35.1"
 testcontainers    = "1.21.4"
 flyway            = "11.20.3"
@@ -30,6 +31,7 @@ auth0-jwks                    = { module = "com.auth0:jwks-rsa", version.ref = "
 jobrunr-spring                = { module = "org.jobrunr:jobrunr-spring-boot-4-starter", version.ref = "jobrunr" }
 konform                       = { module = "io.konform:konform-jvm", version.ref = "konform" }
 mockk                         = { module = "io.mockk:mockk", version.ref = "mockk" }
+springmockk                   = { module = "com.ninja-squad:springmockk", version.ref = "springmockk" }
 strikt-core                   = { module = "io.strikt:strikt-core", version.ref = "strikt" }
 spring-boot-bom               = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 junit-platform-launcher       = { module = "org.junit.platform:junit-platform-launcher" }

@@ -52,6 +52,9 @@ dependencies {
     // Resend Java SDK — exposed in public API (ResendEmailService constructor signature)
     api(libs.resend)
 
+    // springmockk — exposed so consumers' test classpaths get @MockkBean / @SpykBean without redeclaring
+    api(libs.springmockk)
+
     // Tests
     testImplementation(platform(libs.spring.boot.bom))
     testImplementation(libs.spring.boot.starter)
