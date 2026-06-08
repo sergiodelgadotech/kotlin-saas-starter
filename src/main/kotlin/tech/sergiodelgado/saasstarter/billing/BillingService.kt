@@ -23,7 +23,7 @@ open class BillingService(
     fun createCheckoutSession(plan: BillingPlan): String {
         val sub = currentSubscription() ?: throw NotFoundException("No subscription found for organization")
         val priceId = priceIdFor(plan)
-        return stripeClient.checkout().sessions().create(
+        return stripeClient.v1().checkout().sessions().create(
             CheckoutSessionCreateParams.builder()
                 .setCustomer(sub.externalCustomerId)
                 .setMode(CheckoutSessionCreateParams.Mode.SUBSCRIPTION)
@@ -41,7 +41,7 @@ open class BillingService(
 
     fun createPortalSession(): String {
         val sub = currentSubscription() ?: throw NotFoundException("No subscription found for organization")
-        return stripeClient.billingPortal().sessions().create(
+        return stripeClient.v1().billingPortal().sessions().create(
             PortalSessionCreateParams.builder()
                 .setCustomer(sub.externalCustomerId)
                 .setReturnUrl(properties.billing.portalReturnUrl)
@@ -72,7 +72,7 @@ open class BillingService(
             .apply { name?.let { setName(it) } }
             .putAllMetadata(metadata + ("organizationId" to organizationId.toString()))
             .build()
-        return stripeClient.customers().create(params).id
+        return stripeClient.v1().customers().create(params).id
     }
 
     /**

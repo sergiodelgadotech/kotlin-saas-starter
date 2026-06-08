@@ -1,6 +1,7 @@
 package tech.sergiodelgado.saasstarter.billing
 
 import com.stripe.StripeClient
+import com.stripe.service.V1Services
 import com.stripe.model.Customer
 import com.stripe.model.billingportal.Session as PortalSession
 import com.stripe.model.checkout.Session as CheckoutSession
@@ -33,6 +34,7 @@ import java.util.UUID
 class BillingServiceTest {
 
     private val subscriptionRepository = mockk<SubscriptionRepository>()
+    private val mockV1 = mockk<V1Services>()
     private val mockCustomerService = mockk<CustomerService>()
     private val mockCheckoutService = mockk<CheckoutService>()
     private val mockCheckoutSessionService = mockk<CheckoutSessionService>()
@@ -54,10 +56,11 @@ class BillingServiceTest {
     @BeforeEach
     fun setUp() {
         TenantContext.set(orgId)
-        every { stripeClient.customers() } returns mockCustomerService
-        every { stripeClient.checkout() } returns mockCheckoutService
+        every { stripeClient.v1() } returns mockV1
+        every { mockV1.customers() } returns mockCustomerService
+        every { mockV1.checkout() } returns mockCheckoutService
         every { mockCheckoutService.sessions() } returns mockCheckoutSessionService
-        every { stripeClient.billingPortal() } returns mockPortalService
+        every { mockV1.billingPortal() } returns mockPortalService
         every { mockPortalService.sessions() } returns mockPortalSessionService
     }
 
