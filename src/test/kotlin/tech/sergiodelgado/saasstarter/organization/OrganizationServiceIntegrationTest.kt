@@ -1,16 +1,13 @@
 package tech.sergiodelgado.saasstarter.organization
 
-import io.mockk.mockk
+import com.ninjasquad.springmockk.MockkBean
 import tech.sergiodelgado.saasstarter.lock.RedisLockService
 import tech.sergiodelgado.saasstarter.test.TestBootApp
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
-import org.springframework.context.annotation.Bean
-import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.transaction.annotation.Transactional
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
@@ -23,7 +20,7 @@ import strikt.assertions.isNotNull
 @Testcontainers
 @Transactional
 @SpringBootTest(
-    classes = [TestBootApp::class, OrganizationServiceIntegrationTest.MockBeans::class],
+    classes = [TestBootApp::class],
     properties = [
         "spring.flyway.locations=classpath:db/migration/saasstarter",
         "saasstarter.cache.enabled=false",
@@ -32,24 +29,15 @@ import strikt.assertions.isNotNull
 )
 class OrganizationServiceIntegrationTest {
 
-    /**
-     * Supplies a mock RedisLockService so OrganizationAutoConfiguration can wire
-     * OrganizationService without a real Redis instance.
-     */
-    @TestConfiguration
-    class MockBeans {
-        @Bean
-        @Suppress("UNCHECKED_CAST")
-        fun redisLockService(): RedisLockService =
-            RedisLockService(mockk<RedisTemplate<String, Any>>())
-    }
-
     companion object {
         @Container
         @ServiceConnection
         @JvmStatic
         val postgres = PostgreSQLContainer<Nothing>("postgres:16-alpine")
     }
+
+    @MockkBean
+    lateinit var redisLockService: RedisLockService
 
     @Autowired
     lateinit var organizationRepository: OrganizationRepository
