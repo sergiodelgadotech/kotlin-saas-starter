@@ -160,8 +160,13 @@ publishing {
     }
 }
 
+tasks.named("generateLicenseReport") {
+    notCompatibleWithConfigurationCache("jk1 license-report plugin serializes a Project reference")
+}
+
 // ── NOTICE generation ─────────────────────────────────────────────────────────
 tasks.register("generateNotice") {
+    notCompatibleWithConfigurationCache("depends on generateLicenseReport which is not configuration-cache compatible")
     dependsOn("generateLicenseReport")
 
     val reportFile = layout.buildDirectory.file("reports/dependency-license/licenses.json")
