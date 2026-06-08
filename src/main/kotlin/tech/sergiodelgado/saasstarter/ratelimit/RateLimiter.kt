@@ -17,7 +17,7 @@ import java.time.Duration
  *   3. If under limit, add current timestamp and allow
  *   4. Otherwise, deny
  */
-class RateLimiter(
+open class RateLimiter(
     private val redisTemplate: RedisTemplate<String, Any>,
     private val observationRegistry: ObservationRegistry = ObservationRegistry.NOOP,
 ) {
@@ -29,7 +29,7 @@ class RateLimiter(
      * @param limit    Max requests allowed in the window
      * @param window   Time window duration
      */
-    fun isAllowed(key: String, limit: Int, window: Duration): Boolean {
+    open fun isAllowed(key: String, limit: Int, window: Duration): Boolean {
         val now = System.currentTimeMillis()
         val windowStart = now - window.toMillis()
 
