@@ -9,6 +9,8 @@ import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
+import org.springframework.http.HttpMethod
+import org.springframework.web.servlet.resource.NoResourceFoundException
 import tech.sergiodelgado.saasstarter.validation.DomainValidationException
 import tech.sergiodelgado.saasstarter.validation.validateOrThrow
 
@@ -70,6 +72,27 @@ class GlobalExceptionHandlerTest {
         val ex = ForbiddenException("Access denied")
         handler.handleForbidden(ex, model)
         expectThat(model.getAttribute("message") as? String).isEqualTo("Access denied")
+    }
+
+    @Test
+    fun `NoResourceFoundException handler returns 404 view name`() {
+        val ex = NoResourceFoundException(HttpMethod.GET, "/missing.css", "missing.css")
+        val view = handler.handleNoResourceFound(ex, model)
+        expectThat(view).isEqualTo("error/404")
+    }
+
+    @Test
+    fun `NoResourceFoundException handler adds message to model`() {
+        val ex = NoResourceFoundException(HttpMethod.GET, "/missing.css", "missing.css")
+        handler.handleNoResourceFound(ex, model)
+        expectThat(model.getAttribute("message") as? String).isNotNull()
+    }
+
+    @Test
+    fun `NoResourceFoundException does not reach generic handler`() {
+        val ex = NoResourceFoundException(HttpMethod.GET, "/missing.css", "missing.css")
+        val view = handler.handleNoResourceFound(ex, model)
+        expectThat(view).isEqualTo("error/404")
     }
 
     @Test

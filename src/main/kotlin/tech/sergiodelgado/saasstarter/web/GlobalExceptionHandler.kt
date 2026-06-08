@@ -7,6 +7,7 @@ import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.servlet.resource.NoResourceFoundException
 
 class NotFoundException(message: String) : RuntimeException(message)
 class ForbiddenException(message: String) : RuntimeException(message)
@@ -35,6 +36,14 @@ class GlobalExceptionHandler {
     fun handleForbidden(ex: ForbiddenException, model: Model): String {
         model.addAttribute("message", ex.message)
         return "error/403"
+    }
+
+    @ExceptionHandler(NoResourceFoundException::class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    fun handleNoResourceFound(ex: NoResourceFoundException, model: Model): String {
+        log.debug("Resource not found: {}", ex.message)
+        model.addAttribute("message", ex.message)
+        return "error/404"
     }
 
     @ExceptionHandler(Exception::class)
