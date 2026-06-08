@@ -73,6 +73,6 @@ class OrganizationServiceIntegrationTest {
         memberRepository.save(Member(organizationId = org.id, externalUserId = "user-integration-456"))
 
         val resolvedOrgId = memberRepository.findOrganizationIdByUserId("user-integration-456")
-        expectThat(resolvedOrgId).isNotNull().isEqualTo(org.id)
+        expectThat(resolvedOrgId).isNotNull().isEqualTo(org.id.toString())
     }
 }
