@@ -90,6 +90,11 @@ data class SaasStarterProperties(
         val jwksUrl: String = "",
         /** Expected `iss` claim in JWT tokens. Required when security.enabled=true. */
         val issuer: String = "",
+        /**
+         * URI to redirect to after OIDC logout. Spring template variables supported,
+         * e.g. `{baseUrl}/`. Defaults to site root.
+         */
+        val postLogoutRedirectUri: String = "{baseUrl}/",
     )
 
     data class Web(
