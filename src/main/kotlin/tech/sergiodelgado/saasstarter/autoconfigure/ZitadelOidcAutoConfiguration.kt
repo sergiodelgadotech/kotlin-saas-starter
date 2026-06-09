@@ -11,6 +11,11 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import tech.sergiodelgado.saasstarter.security.ZitadelSessionBridgeFilter
 
+/**
+ * Wires [ZitadelSessionBridgeFilter] and [OidcClientInitiatedLogoutSuccessHandler] when
+ * `spring-security-oauth2-client` is on the classpath. Backs off via [ConditionalOnMissingBean]
+ * so consumers can supply their own implementations.
+ */
 @AutoConfiguration
 @ConditionalOnClass(OidcUser::class, ClientRegistrationRepository::class)
 @EnableConfigurationProperties(SaasStarterProperties::class)
