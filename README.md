@@ -36,7 +36,7 @@ dependencies {
 | Package      | Purpose |
 |--------------|---------|
 | `tenant`        | `TenantContext` (thread-local), `TenantInterceptor`, `TenantResolver` interface |
-| `security`      | `JwtAuthFilter` validates JWTs from any OIDC provider (Zitadel, Keycloak, etc.) |
+| `security`      | `JwtAuthFilter` validates Zitadel-issued RS256 JWTs via JWKS |
 | `lock`          | `RedisLockService` for distributed locks — atomic release via `DELEX IFEQ` (Redis 8.4+) |
 | `ratelimit`     | Sliding window rate limiter on Redis sorted sets |
 | `jobs`          | Tenant-aware Jobrunr execution — automatic context propagation |
@@ -168,7 +168,7 @@ This library is opinionated. It assumes:
 - **Kotlin + Spring Boot 3+**
 - **PostgreSQL** as primary database (via Flyway in your app)
 - **Redis 8.4+** for caching, locks, sessions, rate limiting (lock release uses the native `DELEX IFEQ` command added in 8.4)
-- **Zitadel or any OIDC provider** for authentication
+- **Zitadel** for authentication (Cloud or self-hosted)
 - **Jobrunr** for async jobs
 
 If your stack diverges from these, this library is probably not for you.
