@@ -32,25 +32,25 @@ class ZitadelSessionBridgeFilterTest {
 
         filter.doFilter(request, response, chain)
 
-        expectThat(request.getAttribute("auth_user_id")).isEqualTo("user-123")
+        expectThat(request.getAttribute(JwtAuthFilter.USER_ID_ATTR)).isEqualTo("user-123")
     }
 
     @Test
     fun `does not overwrite auth_user_id already set by JwtAuthFilter`() {
-        request.setAttribute("auth_user_id", "bearer-user")
+        request.setAttribute(JwtAuthFilter.USER_ID_ATTR, "bearer-user")
         val oidcUser = mockk<OidcUser> { every { subject } returns "session-user" }
         SecurityContextHolder.getContext().authentication =
             OAuth2AuthenticationToken(oidcUser, emptyList(), "zitadel")
 
         filter.doFilter(request, response, chain)
 
-        expectThat(request.getAttribute("auth_user_id")).isEqualTo("bearer-user")
+        expectThat(request.getAttribute(JwtAuthFilter.USER_ID_ATTR)).isEqualTo("bearer-user")
     }
 
     @Test
     fun `does nothing when unauthenticated`() {
         filter.doFilter(request, response, chain)
 
-        expectThat(request.getAttribute("auth_user_id")).isNull()
+        expectThat(request.getAttribute(JwtAuthFilter.USER_ID_ATTR)).isNull()
     }
 }

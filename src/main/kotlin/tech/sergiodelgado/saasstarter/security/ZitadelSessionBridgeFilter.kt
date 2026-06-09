@@ -13,21 +13,15 @@ class ZitadelSessionBridgeFilter : OncePerRequestFilter() {
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        chain: FilterChain,
+        chain: FilterChain
     ) {
-        if (request.getAttribute(USER_ID_ATTR) == null) {
-            val auth = SecurityContextHolder.getContext().authentication
-            if (auth is OAuth2AuthenticationToken) {
-                val principal = auth.principal
-                if (principal is OidcUser) {
-                    request.setAttribute(USER_ID_ATTR, principal.subject)
-                }
-            }
+        if (request.getAttribute(JwtAuthFilter.USER_ID_ATTR) == null) {
+            (SecurityContextHolder.getContext().authentication as? OAuth2AuthenticationToken)
+                ?.principal
+                ?.let { it as? OidcUser }
+                ?.subject
+                ?.let { request.setAttribute(JwtAuthFilter.USER_ID_ATTR, it) }
         }
         chain.doFilter(request, response)
-    }
-
-    companion object {
-        private const val USER_ID_ATTR = "auth_user_id"
     }
 }

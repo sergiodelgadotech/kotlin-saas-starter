@@ -98,7 +98,7 @@ class JwtAuthFilter(
     }
 
     companion object {
-        private const val USER_ID_ATTR = "auth_user_id"
+        internal const val USER_ID_ATTR = "auth_user_id"
 
         fun getUserId(request: HttpServletRequest): String? =
             request.getAttribute(USER_ID_ATTR) as? String
