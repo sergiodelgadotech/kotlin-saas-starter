@@ -15,13 +15,14 @@ import org.springframework.web.filter.OncePerRequestFilter
 import java.security.interfaces.RSAPublicKey
 
 /**
- * Validates JWTs issued by Zitadel.
+ * Validates RS256 JWTs from any OIDC provider (Zitadel in the reference template).
  *
- * Zitadel issues standard OIDC JWTs signed with RS256.
- * The JWKS endpoint is at: https://<your-zitadel-domain>/oauth/v2/keys
+ * Reads the `sub` claim and sets it as the `auth_user_id` request attribute.
+ * The app's [tech.sergiodelgado.saasstarter.tenant.TenantResolver] maps that ID
+ * to the `external_user_id` column in the `members` table.
  *
- * The `sub` claim contains the Zitadel user ID, which maps to
- * the `zitadel_user_id` column in the `members` table.
+ * JWKS endpoint and issuer are supplied via `saasstarter.security.jwks-url` and
+ * `saasstarter.security.issuer`.
  */
 class JwtAuthFilter(
     private val jwkProvider: JwkProvider,
@@ -86,7 +87,7 @@ class JwtAuthFilter(
         val verifier = JWT.require(algorithm)
             .withIssuer(issuer)
             .build()
-        return verifier.verify(token).subject  // sub = Zitadel user ID
+        return verifier.verify(token).subject
     }
 
     internal fun validateAndExtractUserId(token: String): String? = try {

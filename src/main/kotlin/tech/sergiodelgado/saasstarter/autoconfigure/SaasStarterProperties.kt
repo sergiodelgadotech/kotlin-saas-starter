@@ -86,7 +86,7 @@ data class SaasStarterProperties(
 
     data class Security(
         val enabled: Boolean = true,
-        /** Zitadel-style JWKS endpoint URL. Required when security.enabled=true. */
+        /** JWKS endpoint URL for JWT validation. Required when security.enabled=true. */
         val jwksUrl: String = "",
         /** Expected `iss` claim in JWT tokens. Required when security.enabled=true. */
         val issuer: String = "",
