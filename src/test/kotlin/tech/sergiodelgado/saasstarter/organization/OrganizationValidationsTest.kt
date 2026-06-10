@@ -102,17 +102,51 @@ class OrganizationValidationsTest {
     // --- inviteMember ---
 
     @Test
-    fun `inviteMember passes with valid userId`() {
+    fun `inviteMember passes with valid email and MEMBER role`() {
         expectThat(OrganizationValidations.inviteMember.validateOrThrow(
-            InviteMemberCommand("user-ext-1", "MEMBER")
+            InviteMemberCommand("user@example.com", "MEMBER")
         )).isA<InviteMemberCommand>()
     }
 
     @Test
-    fun `inviteMember rejects blank userId`() {
+    fun `inviteMember passes with valid email and ADMIN role`() {
+        expectThat(OrganizationValidations.inviteMember.validateOrThrow(
+            InviteMemberCommand("admin@example.com", "ADMIN")
+        )).isA<InviteMemberCommand>()
+    }
+
+    @Test
+    fun `inviteMember rejects blank email`() {
         assertThrows<DomainValidationException> {
             OrganizationValidations.inviteMember.validateOrThrow(
                 InviteMemberCommand("", "MEMBER")
+            )
+        }
+    }
+
+    @Test
+    fun `inviteMember rejects email without at-sign`() {
+        assertThrows<DomainValidationException> {
+            OrganizationValidations.inviteMember.validateOrThrow(
+                InviteMemberCommand("notanemail", "MEMBER")
+            )
+        }
+    }
+
+    @Test
+    fun `inviteMember rejects OWNER role`() {
+        assertThrows<DomainValidationException> {
+            OrganizationValidations.inviteMember.validateOrThrow(
+                InviteMemberCommand("user@example.com", "OWNER")
+            )
+        }
+    }
+
+    @Test
+    fun `inviteMember rejects blank role`() {
+        assertThrows<DomainValidationException> {
+            OrganizationValidations.inviteMember.validateOrThrow(
+                InviteMemberCommand("user@example.com", "")
             )
         }
     }

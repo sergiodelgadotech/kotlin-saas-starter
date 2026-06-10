@@ -12,7 +12,7 @@ data class CreateOrganizationCommand(
 )
 
 data class InviteMemberCommand(
-    val externalUserId: String,
+    val email: String,
     val role: String,
 )
 
@@ -45,9 +45,16 @@ object OrganizationValidations {
         }
     }
 
+    private val allowedRoles = setOf("ADMIN", "MEMBER")
+
     val inviteMember = Validation<InviteMemberCommand> {
-        InviteMemberCommand::externalUserId {
-            minLength(1) hint "User ID is required"
+        InviteMemberCommand::email {
+            minLength(1) hint "Email is required"
+            pattern(Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) hint "Email must be a valid email address"
+        }
+        InviteMemberCommand::role {
+            minLength(1) hint "Role is required"
+            constrain("Role must be ADMIN or MEMBER") { it in allowedRoles }
         }
     }
 }
