@@ -45,6 +45,7 @@ object OrganizationValidations {
         }
     }
 
+    // String literals intentional: apps may use custom MemberRole implementations, not DefaultMemberRole
     private val allowedRoles = setOf("ADMIN", "MEMBER")
 
     val inviteMember = Validation<InviteMemberCommand> {
