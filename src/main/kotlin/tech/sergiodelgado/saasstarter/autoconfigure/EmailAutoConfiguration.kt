@@ -36,10 +36,16 @@ class EmailAutoConfiguration {
         fun emailService(
             resend: Resend,
             observationRegistry: ObjectProvider<ObservationRegistry>,
-        ): EmailService = ResendEmailService(
-            resend,
-            properties.email.fromAddress,
-            observationRegistry.getIfAvailable { ObservationRegistry.NOOP },
-        )
+        ): EmailService {
+            val from = properties.email.fromName
+                .takeIf { it.isNotBlank() }
+                ?.let { "${it} <${properties.email.fromAddress}>" }
+                ?: properties.email.fromAddress
+            return ResendEmailService(
+                resend,
+                from,
+                observationRegistry.getIfAvailable { ObservationRegistry.NOOP },
+            )
+        }
     }
 }

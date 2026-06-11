@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
 
 open class ResendEmailService(
     private val resend: Resend,
-    private val defaultFrom: String,
+    internal val defaultFrom: String,
     private val observationRegistry: ObservationRegistry = ObservationRegistry.NOOP,
 ) : EmailService {
 

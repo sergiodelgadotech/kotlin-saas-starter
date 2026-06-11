@@ -110,5 +110,7 @@ data class SaasStarterProperties(
         val apiKey: String = "",
         /** Default `from` address used when [tech.sergiodelgado.saasstarter.email.EmailMessage.from] is null. */
         val fromAddress: String = "",
+        /** Optional display name combined with [fromAddress] as `"Name <address>"`. Set via `RESEND_FROM_NAME` env var. */
+        val fromName: String = "",
     )
 }
