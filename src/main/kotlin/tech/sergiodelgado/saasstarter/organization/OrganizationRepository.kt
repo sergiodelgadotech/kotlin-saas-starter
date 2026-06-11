@@ -29,5 +29,5 @@ interface MemberRepository : CrudRepository<Member, UUID> {
 
     @Modifying
     @Query("UPDATE members SET email = :email, first_name = :firstName, last_name = :lastName WHERE external_user_id = :externalUserId")
-    fun updateProfile(externalUserId: String, email: String?, firstName: String?, lastName: String?)
+    fun updateProfile(externalUserId: String, email: String, firstName: String?, lastName: String?)
 }

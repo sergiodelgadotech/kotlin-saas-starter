@@ -28,7 +28,7 @@ open class OrganizationService(
     fun inviteMember(
         externalUserId: String,
         role: String = DefaultMemberRole.MEMBER.name,
-        email: String? = null,
+        email: String = "",
         firstName: String? = null,
         lastName: String? = null,
     ): Member {
