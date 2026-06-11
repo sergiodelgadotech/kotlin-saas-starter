@@ -42,6 +42,9 @@ data class Member(
     /** Identity provider's user ID. App's TenantResolver maps it to the org. */
     val externalUserId: String,
     val role: String = DefaultMemberRole.MEMBER.name,
+    val email: String? = null,
+    val firstName: String? = null,
+    val lastName: String? = null,
     val createdAt: Instant = Instant.now(),
 ) : Persistable<UUID> {
     /**

@@ -25,14 +25,27 @@ open class OrganizationService(
     fun members(): List<Member> =
         memberRepository.findByOrganizationId(TenantContext.get())
 
-    fun inviteMember(externalUserId: String, role: String = DefaultMemberRole.MEMBER.name): Member {
+    fun inviteMember(
+        externalUserId: String,
+        role: String = DefaultMemberRole.MEMBER.name,
+        email: String? = null,
+        firstName: String? = null,
+        lastName: String? = null,
+    ): Member {
         val orgId = TenantContext.get()
         return lockService.withLock("invite:$orgId:$externalUserId") {
             check(!memberRepository.existsByOrganizationIdAndExternalUserId(orgId, externalUserId)) {
                 "User is already a member of this organization"
             }
             val saved = memberRepository.save(
-                Member(organizationId = orgId, externalUserId = externalUserId, role = role)
+                Member(
+                    organizationId = orgId,
+                    externalUserId = externalUserId,
+                    role = role,
+                    email = email,
+                    firstName = firstName,
+                    lastName = lastName,
+                )
             )
             val actor = SecurityContextHolder.getContext().authentication?.name ?: "system"
             applicationEventPublisher.publishEvent(

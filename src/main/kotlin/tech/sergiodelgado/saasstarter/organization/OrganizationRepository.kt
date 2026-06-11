@@ -1,6 +1,7 @@
 package tech.sergiodelgado.saasstarter.organization
 
 import org.springframework.cache.annotation.Cacheable
+import org.springframework.data.jdbc.repository.query.Modifying
 import org.springframework.data.jdbc.repository.query.Query
 import org.springframework.data.repository.CrudRepository
 import java.util.UUID
@@ -25,4 +26,8 @@ interface MemberRepository : CrudRepository<Member, UUID> {
     fun findOrganizationIdByUserId(userId: String): String?
 
     fun existsByOrganizationIdAndExternalUserId(organizationId: UUID, externalUserId: String): Boolean
+
+    @Modifying
+    @Query("UPDATE members SET email = :email, first_name = :firstName, last_name = :lastName WHERE external_user_id = :externalUserId")
+    fun updateProfile(externalUserId: String, email: String?, firstName: String?, lastName: String?)
 }
