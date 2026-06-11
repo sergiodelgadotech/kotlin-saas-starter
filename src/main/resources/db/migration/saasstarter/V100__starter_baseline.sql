@@ -13,6 +13,9 @@ CREATE TABLE members (
     organization_id  UUID         NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     external_user_id VARCHAR(255) NOT NULL UNIQUE,
     role             VARCHAR(50)  NOT NULL DEFAULT 'MEMBER',
+    email            VARCHAR(255) NOT NULL,
+    first_name       VARCHAR(255),
+    last_name        VARCHAR(255),
     created_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
