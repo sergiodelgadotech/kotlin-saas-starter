@@ -1,12 +1,15 @@
 package tech.sergiodelgado.saasstarter.web
 
 import tech.sergiodelgado.saasstarter.validation.DomainValidationException
+import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException
 import org.springframework.web.servlet.resource.NoResourceFoundException
 
 class NotFoundException(message: String) : RuntimeException(message)
@@ -46,10 +49,21 @@ class GlobalExceptionHandler {
         return "error/404"
     }
 
+    // SSE/async long-poll connections time out normally — not an error worth alerting on.
+    // Return no body; the response is typically already committed at 200.
+    @ExceptionHandler(AsyncRequestTimeoutException::class)
+    fun handleAsyncTimeout(ex: AsyncRequestTimeoutException): ResponseEntity<Void> {
+        log.debug("Async request timed out", ex)
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build()
+    }
+
     @ExceptionHandler(Exception::class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    fun handleGeneric(ex: Exception, model: Model): String {
+    fun handleGeneric(ex: Exception, model: Model, response: HttpServletResponse): String? {
         log.error("Unhandled exception", ex)
+        // If bytes were already written (e.g. SSE stream, chunked response) attempting
+        // view rendering would throw IllegalStateException: STREAM. Skip it.
+        if (response.isCommitted) return null
         return "error/500"
     }
 }

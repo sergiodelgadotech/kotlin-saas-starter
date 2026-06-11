@@ -3,14 +3,18 @@ package tech.sergiodelgado.saasstarter.web
 import io.konform.validation.Validation
 import io.konform.validation.constraints.minLength
 import org.junit.jupiter.api.Test
+import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
+import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.ui.ExtendedModelMap
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException
+import org.springframework.web.servlet.resource.NoResourceFoundException
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
-import org.springframework.http.HttpMethod
-import org.springframework.web.servlet.resource.NoResourceFoundException
+import strikt.assertions.isNull
 import tech.sergiodelgado.saasstarter.validation.DomainValidationException
 import tech.sergiodelgado.saasstarter.validation.validateOrThrow
 
@@ -20,6 +24,7 @@ class GlobalExceptionHandlerTest {
 
     private val handler = GlobalExceptionHandler()
     private val model = ExtendedModelMap()
+    private val response = MockHttpServletResponse()
 
     private fun domainValidationException(): DomainValidationException {
         val validation = Validation<TestInput> {
@@ -96,10 +101,26 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    fun `generic Exception handler returns 500 view name`() {
+    fun `generic Exception handler returns 500 view name for uncommitted response`() {
         val ex = RuntimeException("Unexpected server error")
-        val view = handler.handleGeneric(ex, model)
+        val view = handler.handleGeneric(ex, model, response)
         expectThat(view).isEqualTo("error/500")
+    }
+
+    @Test
+    fun `generic Exception handler returns null for committed response`() {
+        val ex = RuntimeException("Unexpected server error")
+        response.flushBuffer()  // marks response as committed
+        val view = handler.handleGeneric(ex, model, response)
+        expectThat(view).isNull()
+    }
+
+    @Test
+    fun `AsyncRequestTimeoutException handler returns 503 with no body`() {
+        val ex = AsyncRequestTimeoutException()
+        val result = handler.handleAsyncTimeout(ex)
+        expectThat(result.statusCode).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
+        expectThat(result.hasBody()).isEqualTo(false)
     }
 
     @Test
