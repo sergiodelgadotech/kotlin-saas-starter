@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.7.0] (2026-06-12)
+
+### Features
+
+* **auth:** add `IdpUserDirectory.updateProfile` for self-service display-name editing
+
+### Breaking Changes
+
+* `IdpUserDirectory` is no longer a `fun interface` — SAM-lambda stubs must be converted to anonymous objects implementing both `findOrInvite` and `updateProfile`.
+
 ## [0.6.0](https://github.com/sergiodelgadotech/kotlin-saas-starter/compare/v0.5.0...v0.6.0) (2026-05-30)
 
 
