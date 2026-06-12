@@ -1,5 +1,79 @@
 # Changelog
 
+## [0.7.0](https://github.com/sergiodelgadotech/kotlin-saas-starter/compare/v0.6.0...v0.7.0) (2026-06-12)
+
+
+### Features
+
+* **auth:** add IdpUserDirectory interface + email/role validation to InviteMemberCommand ([5c8cd98](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/5c8cd980a0b0013830931e763c0e91c2ae7424f3))
+* **auth:** add updateProfile to IdpUserDirectory for self-service name editing ([e6e8ecc](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/e6e8eccfcc7ad1299c8527c5b02e4709f592bf26))
+* **auth:** add ZitadelSessionBridgeFilter for OIDC session → auth_user_id bridge ([7b862cb](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/7b862cb2d24d4e5dedfc08561b6eddc639d78fb8))
+* **auth:** autoconfigure ZitadelSessionBridgeFilter and OidcLogoutSuccessHandler ([1489136](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/14891369210e98ee0e9d640a01317ab4866afc3b))
+* **billing:** add createCustomer and ensureSubscription to BillingService ([2b8dfcd](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/2b8dfcd77793342c2c0f35bcbc92c0324985dd1a)), closes [#53](https://github.com/sergiodelgadotech/kotlin-saas-starter/issues/53)
+* **email:** add EmailService interface and ResendEmailService default implementation ([6e7024e](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/6e7024e4c5a19d9360adfad5603bf1e24fa92300))
+* **email:** add fromName support to EmailService ([2190097](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/2190097dbb0487538149e0d3b27dcc52ee3fea6b))
+* **observability:** add CorrelationIdFilter, TenantMdcInterceptor, and TenantObservationFilter ([c1d4bf6](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/c1d4bf63fd94289847b25869b295d178bef2a474))
+* **observability:** add Micrometer Observation instrumentation to operational classes ([296a028](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/296a028493752af09477b355f60a984f55fc8652)), closes [#50](https://github.com/sergiodelgadotech/kotlin-saas-starter/issues/50)
+* **org:** add MemberInvitedEvent domain event ([b702773](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/b702773fffdda023331b1f0c64e582c0c6f62841))
+* **organization:** add profile fields to Member + updateProfile on login ([53e4f7a](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/53e4f7a9399704062f5678b2e6b96b978b8ecf6b))
+* **org:** publish MemberInvitedEvent from inviteMember ([c9fa918](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/c9fa918cfbc98e5d5a461817f454b159d990b051))
+* upgrade to Spring Boot 4, JobRunr 8, and Kotlin annotation-default-target ([876d67a](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/876d67af300fcc53a7201571ef15df82dff03e5f))
+
+
+### Bug Fixes
+
+* **billing:** resolve Stripe plan via configured plan-prices map ([62c091d](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/62c091d2c086fe886f3ee245c78abec6970c9c5c))
+* **billing:** return nullable Subscription from currentSubscription() ([4a4f680](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/4a4f68054eb3605b9a6edaf3c1383cecc470d08e))
+* **build:** correct POM license to LGPL v2.1 ([bb6099c](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/bb6099c2eae9d5279a212a799e2f74e23f1c5539)), closes [#52](https://github.com/sergiodelgadotech/kotlin-saas-starter/issues/52)
+* **build:** mark license-report tasks as not configuration-cache compatible ([2f89086](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/2f89086db9fe4f43c4eba1a49912367262830250))
+* **cache:** return String? from findOrganizationIdByUserId to avoid UUID cast on cache hit ([84cb636](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/84cb6368c19183dfa827ecf6c8cad1253c79849e))
+* **deps:** update all non-major dependencies ([0f7c4cd](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/0f7c4cdec973cf10b2d4fc8dde201c7ebdab4a0e))
+* **deps:** update all non-major dependencies ([099b9fa](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/099b9fa31bbe6dcc44fe1815a48bb04e3b03a83c))
+* **deps:** update dependency io.mockk:mockk to v1.14.11 ([28622f8](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/28622f80149d40e9e99bc2f57faa6962f233fb00))
+* **deps:** update dependency io.mockk:mockk to v1.14.11 ([3878393](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/3878393eeea5aaf98d5e39a6d0a6459883ef69ed))
+* **deps:** update flyway to v12 ([f5eba05](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/f5eba0523bdfbb8dbb09336271db321f6704aa9a))
+* **deps:** update flyway to v12 ([bf0bcb4](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/bf0bcb4563004e4a9354d9ce4e55185f305f1421))
+* **migration:** drop DEFAULT after adding email column so bare INSERTs fail fast ([ecc71a8](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/ecc71a8b5d3c0177239a7f6a9a524d7aaef8fa5f))
+* **observability:** add missing outcome tags and release observation ([9f913ac](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/9f913ac74278e2e8ca04bf20e4c736cb038780d4))
+* **observability:** correct cardinality, error signals, and double-verification ([553da4e](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/553da4eef8769b5b8ad2e086369cb2040aca5243))
+* **observability:** propagate tenant.id to HTTP server observations via request attribute ([3346b08](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/3346b0891be74f1f755b6451502b6c5065feff23))
+* **observability:** split inner BeansConfig to avoid ConditionalOnBean timing issue ([d26ffa9](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/d26ffa91fcc818ea16d1d454a82cbbf6a3d4ae71))
+* **organization:** make Member.email non-nullable (NOT NULL DEFAULT '') ([3273827](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/327382792bd693de08e7beeafa85376d48b0c4d3))
+* **redis:** use EVERYTHING typing in Jackson serializer to handle final-class cache values ([6479a94](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/6479a941f32f5a1d2b1170e6040b872aa4a11fa8))
+* **security:** read tenant from SecurityContext when JWT header is absent ([c18e428](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/c18e428dc78ac39f6e019e9ecce3bae2ce63d1fe))
+* **test:** correct UUID→String comparison in OrganizationServiceIntegrationTest ([d3e6366](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/d3e63661b783a9d19c5a60080d23afa262a2c1f3))
+* **web:** handle AsyncRequestTimeoutException and guard committed responses in GlobalExceptionHandler ([95af64a](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/95af64a7573782699b7ef6074cf7f3f2036f66bc))
+* **web:** handle NoResourceFoundException explicitly in GlobalExceptionHandler ([2ffed12](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/2ffed12d2fb60e9385748dbd2a20ba6eeeffc869)), closes [#65](https://github.com/sergiodelgadotech/kotlin-saas-starter/issues/65)
+
+
+### Performance
+
+* enable Gradle configuration cache ([4b77525](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/4b775252e9b4e5350ac95d5fb19ac0834d2fdcc5))
+
+
+### Refactoring
+
+* **auth:** promote USER_ID_ATTR to internal and use safe-call chain in bridge filter ([4d3fab0](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/4d3fab0bf398487af091f39a55d9bbdd95b32518))
+* **billing:** migrate checkout/portal session creation to StripeClient ([a1fa61e](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/a1fa61ec0cf788d5af11eccd036872fd769e32e1)), closes [#57](https://github.com/sergiodelgadotech/kotlin-saas-starter/issues/57)
+* **billing:** migrate StripeClient calls to v1() namespace ([493e60d](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/493e60d40aedb2c1bc775b14b58e307b0b2e00e4))
+* **migration:** fold member profile columns into V100 baseline ([e429712](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/e429712211244771d4db26e2222978ce38bb1d39))
+* **migration:** fold V101 subscriptions into V100 single baseline ([defc5a6](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/defc5a668f6f1091e20bb0d005cb5858d3062a2e))
+* **org:** document allowedRoles intent in OrganizationValidations ([049c46c](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/049c46ca7442d0bf7f096e10ae4433673a3ca442))
+* **org:** remove plan field from Organization — subscription is the source of truth ([836fd78](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/836fd78d8fd648b91ecc641834e94324e87539ba))
+* **ratelimit:** open RateLimiter and isAllowed for test-double subclassing ([f64b59b](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/f64b59bfd0e9e84231f63a6796676cfca8cc0ec4))
+* **test:** replace @TestConfiguration MockBeans with @MockkBean ([b194e68](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/b194e68d5db452e3cdf6cc52666da0e9dfcb5b8e))
+
+
+### Documentation
+
+* **auth:** add KDoc to ZitadelOidcAutoConfiguration ([7a7f237](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/7a7f237243ad0d48ba6555dae524afdc2a1e8027))
+* **auth:** declare Zitadel as the opinionated auth provider ([5a7c2d9](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/5a7c2d981a13cec89cee2847dcc01d14d130d88e))
+* **auth:** remove stale Zitadel-specific KDoc references ([0b416fb](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/0b416fb1abd6862f00832fed44e157a8f810eb9b))
+* document Spring Boot 4.0.x minimum requirement in CLAUDE.md ([a9860c8](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/a9860c85bcdde08dd3643c420281f130657a4721))
+* **observability:** document built-in Redis and Jobrunr health indicators ([952a31d](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/952a31df52b800e090d1637f6665af97c94657e4)), closes [#51](https://github.com/sergiodelgadotech/kotlin-saas-starter/issues/51)
+* refresh README — stale group, version, and quick-start ([d0d026b](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/d0d026bc02c305fcf8236b62def92b39ec93a932))
+* refresh README quick-start with current coordinates ([faf3b06](https://github.com/sergiodelgadotech/kotlin-saas-starter/commit/faf3b06b52eb5816565f34520d815b380ec150fd)), closes [#55](https://github.com/sergiodelgadotech/kotlin-saas-starter/issues/55)
+
 ## [0.7.0] (2026-06-12)
 
 ### Features
