@@ -1,16 +1,19 @@
 package tech.sergiodelgado.saasstarter.billing
 
 import com.stripe.StripeClient
-import com.stripe.service.V1Services
 import com.stripe.model.Customer
+import com.stripe.model.StripeCollection
 import com.stripe.model.billingportal.Session as PortalSession
 import com.stripe.model.checkout.Session as CheckoutSession
 import com.stripe.param.CustomerCreateParams
+import com.stripe.param.SubscriptionListParams
 import com.stripe.param.billingportal.SessionCreateParams as PortalSessionCreateParams
 import com.stripe.param.checkout.SessionCreateParams as CheckoutSessionCreateParams
 import com.stripe.service.BillingPortalService
 import com.stripe.service.CheckoutService
 import com.stripe.service.CustomerService
+import com.stripe.service.SubscriptionService
+import com.stripe.service.V1Services
 import com.stripe.service.billingportal.SessionService as PortalSessionService
 import com.stripe.service.checkout.SessionService as CheckoutSessionService
 import io.mockk.every
@@ -40,6 +43,7 @@ class BillingServiceTest {
     private val mockCheckoutSessionService = mockk<CheckoutSessionService>()
     private val mockPortalService = mockk<BillingPortalService>()
     private val mockPortalSessionService = mockk<PortalSessionService>()
+    private val mockSubscriptionService = mockk<SubscriptionService>()
     private val stripeClient = mockk<StripeClient>()
     private val properties = SaasStarterProperties(
         billing = SaasStarterProperties.Billing(
@@ -62,6 +66,7 @@ class BillingServiceTest {
         every { mockCheckoutService.sessions() } returns mockCheckoutSessionService
         every { mockV1.billingPortal() } returns mockPortalService
         every { mockPortalService.sessions() } returns mockPortalSessionService
+        every { mockV1.subscriptions() } returns mockSubscriptionService
     }
 
     @AfterEach
@@ -236,5 +241,83 @@ class BillingServiceTest {
         service.ensureSubscription(orgId, "cus_test123", DefaultBillingPlan.PRO)
 
         expectThat(slot.captured.plan).isEqualTo("PRO")
+    }
+
+    // ── syncFromStripe ────────────────────────────────────────────────────────
+
+    @Test
+    fun `syncFromStripe returns null when no local subscription exists`() {
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns null
+
+        expectThat(service.syncFromStripe()).isNull()
+        verify(exactly = 0) { mockSubscriptionService.list(any<SubscriptionListParams>()) }
+    }
+
+    @Test
+    fun `syncFromStripe returns unchanged local subscription when Stripe returns no subscriptions`() {
+        val sub = Subscription(organizationId = orgId, externalCustomerId = "cus_abc")
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns sub
+        val emptyCollection = mockk<StripeCollection<com.stripe.model.Subscription>> {
+            every { data } returns mutableListOf()
+        }
+        every { mockSubscriptionService.list(any<SubscriptionListParams>()) } returns emptyCollection
+
+        val result = service.syncFromStripe()
+
+        expectThat(result).isSameInstanceAs(sub)
+        verify(exactly = 0) { subscriptionRepository.save(any()) }
+    }
+
+    @Test
+    fun `syncFromStripe updates local subscription plan and status from Stripe`() {
+        val sub = Subscription(organizationId = orgId, externalCustomerId = "cus_abc", plan = "STARTER")
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns sub
+
+        val price = mockk<com.stripe.model.Price> { every { id } returns "price_pro_123" }
+        val item = mockk<com.stripe.model.SubscriptionItem> {
+            every { this@mockk.price } returns price
+            every { currentPeriodEnd } returns 1_700_000_000L
+        }
+        val items = mockk<com.stripe.model.SubscriptionItemCollection> {
+            every { data } returns mutableListOf(item)
+        }
+        val stripeSub = mockk<com.stripe.model.Subscription> {
+            every { this@mockk.items } returns items
+            every { status } returns "active"
+            every { id } returns "sub_pro_xyz"
+            every { cancelAtPeriodEnd } returns false
+            every { customer } returns "cus_abc"
+        }
+        val collection = mockk<StripeCollection<com.stripe.model.Subscription>> {
+            every { data } returns mutableListOf(stripeSub)
+        }
+        every { mockSubscriptionService.list(any<SubscriptionListParams>()) } returns collection
+
+        val slot = slot<Subscription>()
+        every { subscriptionRepository.save(capture(slot)) } answers { firstArg() }
+
+        service.syncFromStripe()
+
+        verify { subscriptionRepository.save(any()) }
+        expectThat(slot.captured.plan).isEqualTo(DefaultBillingPlan.PRO.name)
+        expectThat(slot.captured.status).isEqualTo(SubscriptionStatus.ACTIVE)
+        expectThat(slot.captured.externalSubscriptionId).isEqualTo("sub_pro_xyz")
+    }
+
+    @Test
+    fun `syncFromStripe passes customer filter and limit=1 to Stripe list call`() {
+        val sub = Subscription(organizationId = orgId, externalCustomerId = "cus_filter_test")
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns sub
+        val emptyCollection = mockk<StripeCollection<com.stripe.model.Subscription>> {
+            every { data } returns mutableListOf()
+        }
+        val paramsSlot = slot<SubscriptionListParams>()
+        every { mockSubscriptionService.list(capture(paramsSlot)) } returns emptyCollection
+
+        service.syncFromStripe()
+
+        val params = paramsSlot.captured
+        expectThat(params.customer).isEqualTo("cus_filter_test")
+        expectThat(params.limit).isEqualTo(1L)
     }
 }

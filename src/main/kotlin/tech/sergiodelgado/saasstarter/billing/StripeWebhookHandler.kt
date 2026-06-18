@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional
 import tech.sergiodelgado.saasstarter.autoconfigure.SaasStarterProperties
 import tech.sergiodelgado.saasstarter.email.EmailMessage
 import tech.sergiodelgado.saasstarter.email.EmailService
-import java.time.Instant
 
 @Transactional
 open class StripeWebhookHandler(
@@ -55,16 +54,13 @@ open class StripeWebhookHandler(
             return
         }
 
-        // In Stripe SDK v29+, currentPeriodEnd moved from Subscription to SubscriptionItem
-        val periodEnd = stripeSub.items.data.firstOrNull()?.currentPeriodEnd
-            ?.let { Instant.ofEpochSecond(it) }
-
         subscriptionRepository.save(
             sub.copy(
                 externalSubscriptionId = stripeSub.id,
                 plan                   = mapPlan(stripeSub),
                 status                 = mapStatus(stripeSub.status),
-                currentPeriodEnd       = periodEnd,
+                // In Stripe SDK v29+, currentPeriodEnd moved from Subscription to SubscriptionItem
+                currentPeriodEnd       = StripeSubscriptionMapper.periodEnd(stripeSub),
                 cancelAtPeriodEnd      = stripeSub.cancelAtPeriodEnd,
             )
         )
@@ -102,23 +98,10 @@ open class StripeWebhookHandler(
         )
     }
 
-    internal fun mapStatus(status: String) = when (status) {
-        "active"   -> SubscriptionStatus.ACTIVE
-        "trialing" -> SubscriptionStatus.TRIALING
-        "past_due" -> SubscriptionStatus.PAST_DUE
-        else       -> SubscriptionStatus.CANCELED
-    }
+    /** Delegates to [StripeSubscriptionMapper.mapStatus]; kept `internal` for test access. */
+    internal fun mapStatus(status: String): SubscriptionStatus =
+        StripeSubscriptionMapper.mapStatus(status)
 
-    private fun mapPlan(stripeSub: com.stripe.model.Subscription): String {
-        val priceId = stripeSub.items.data.firstOrNull()?.price?.id
-            ?: return DefaultBillingPlan.STARTER.name
-        return planByPriceId[priceId] ?: run {
-            log.warn(
-                "Unknown Stripe priceId '{}' — not configured in saasstarter.billing.plan-prices; falling back to {}",
-                priceId,
-                DefaultBillingPlan.STARTER.name,
-            )
-            DefaultBillingPlan.STARTER.name
-        }
-    }
+    private fun mapPlan(stripeSub: com.stripe.model.Subscription): String =
+        StripeSubscriptionMapper.mapPlan(stripeSub, planByPriceId, log)
 }

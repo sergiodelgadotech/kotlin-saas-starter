@@ -2,12 +2,14 @@ package tech.sergiodelgado.saasstarter.billing
 
 import com.stripe.StripeClient
 import com.stripe.param.CustomerCreateParams
+import com.stripe.param.SubscriptionListParams
 import com.stripe.param.billingportal.SessionCreateParams as PortalSessionCreateParams
 import com.stripe.param.checkout.SessionCreateParams as CheckoutSessionCreateParams
+import org.slf4j.LoggerFactory
+import org.springframework.transaction.annotation.Transactional
 import tech.sergiodelgado.saasstarter.autoconfigure.SaasStarterProperties
 import tech.sergiodelgado.saasstarter.tenant.TenantContext
 import tech.sergiodelgado.saasstarter.web.NotFoundException
-import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 @Transactional
@@ -16,9 +18,42 @@ open class BillingService(
     private val properties: SaasStarterProperties,
     private val stripeClient: StripeClient,
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
+    private val planByPriceId: Map<String, String> =
+        properties.billing.planPrices.entries.associate { (plan, price) -> price to plan }
 
     fun currentSubscription(): Subscription? =
         subscriptionRepository.findByOrganizationId(TenantContext.get())
+
+    /**
+     * Fetches the current Stripe subscription for this tenant's customer and updates the local
+     * [Subscription] row to match it. Call this on the success-return from Stripe Checkout to
+     * ensure the plan is correct before the async webhook lands.
+     *
+     * Returns the (possibly updated) subscription, or null if no local subscription exists.
+     */
+    fun syncFromStripe(): Subscription? {
+        val sub = currentSubscription() ?: return null
+        val stripeSub = stripeClient.v1().subscriptions()
+            .list(
+                SubscriptionListParams.builder()
+                    .setCustomer(sub.externalCustomerId)
+                    .setStatus(SubscriptionListParams.Status.ALL)
+                    .setLimit(1L)
+                    .build()
+            )
+            .data
+            .firstOrNull() ?: return sub   // no Stripe sub yet — return unchanged local row
+
+        val updated = sub.copy(
+            externalSubscriptionId = stripeSub.id,
+            plan                   = StripeSubscriptionMapper.mapPlan(stripeSub, planByPriceId, log),
+            status                 = StripeSubscriptionMapper.mapStatus(stripeSub.status),
+            currentPeriodEnd       = StripeSubscriptionMapper.periodEnd(stripeSub),
+            cancelAtPeriodEnd      = stripeSub.cancelAtPeriodEnd,
+        )
+        return subscriptionRepository.save(updated)
+    }
 
     fun createCheckoutSession(plan: BillingPlan): String {
         val sub = currentSubscription() ?: throw NotFoundException("No subscription found for organization")
