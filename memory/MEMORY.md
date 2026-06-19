@@ -2,7 +2,7 @@
 - [Project board status automation](feedback_project_board_automation.md) — auto-move plan issues: In Progress on start, Done+close on user-confirmed completion
 - [Composite build replaces publishToMavenLocal](feedback_publish_to_maven_local.md) — template uses includeBuild; no publishToMavenLocal or SNAPSHOT bumps needed for local dev
 - [Check off plan-issue checkboxes as substeps complete](feedback_plan_issue_checkboxes.md) — tick `- [ ]` → `- [x]` in the plan issue's body as substeps land, not just at task boundaries
-- [Trunk-based development — commit on main](feedback_trunk_based_development.md) — both repos commit directly to main; skip feature branches and worktrees
+- [PR-based workflow — feature branch + squash merge](feedback_pr_workflow.md) — feature branch per task, PR with conventional-commit title, CI gates merge, squash only; no direct pushes to main
 - [Frontend is Thymeleaf MVC, not SPA/REST](project_frontend_architecture.md) — affects error handler design; don't ship ProblemDetail/REST variant speculatively
 - [Autoconfig inner-class pattern — drop @ConditionalOnBean, use unique bean name](feedback_autoconfig_inner_class_pattern.md) — @ConditionalOnBean on inner @Configuration always evaluates false; use unique @Bean name to avoid Spring Boot's redisTemplate conflict
 - [Plan 1: Observability foundations](project_observability_plan.md) — starter #49/50/51 + template #49; Grafana Cloud free tier chosen as backend; A blocks B, C, D

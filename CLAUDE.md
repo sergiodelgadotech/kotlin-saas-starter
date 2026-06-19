@@ -4,7 +4,7 @@ This file gives Claude Code the context it needs to work effectively on this rep
 
 ## Workflow Conventions
 
-- Use trunk-based development; do NOT propose feature branches.
+- Each task goes on a **feature branch** → commit → push → open a PR (title must be a [conventional commit](https://www.conventionalcommits.org/)) → CI must pass and branch must be up to date with `main` → squash-merge. Do not push directly to `main` — branch protection enforces this. PR titles become the conventional-commit subjects that release-please reads; use `feat!:` for breaking changes.
 
 ## What this repo is
 
