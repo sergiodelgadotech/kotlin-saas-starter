@@ -27,6 +27,7 @@ import org.junit.jupiter.api.assertThrows
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import strikt.assertions.isNull
 import strikt.assertions.isSameInstanceAs
 import tech.sergiodelgado.saasstarter.autoconfigure.SaasStarterProperties
@@ -302,6 +303,39 @@ class BillingServiceTest {
         expectThat(slot.captured.plan).isEqualTo(DefaultBillingPlan.PRO.name)
         expectThat(slot.captured.status).isEqualTo(SubscriptionStatus.ACTIVE)
         expectThat(slot.captured.externalSubscriptionId).isEqualTo("sub_pro_xyz")
+    }
+
+    @Test
+    fun `syncFromStripe saves an existing subscription as not-new so Spring Data JDBC UPDATEs`() {
+        // Regression: Subscription.copy() resets the @Transient _new flag to true (it is not a
+        // constructor property), so before the fix syncFromStripe saved a "new" entity and Spring
+        // Data JDBC issued an INSERT, hitting subscriptions_pkey on the success-return from Checkout.
+        val existing = Subscription(organizationId = orgId, externalCustomerId = "cus_abc").apply { _new = false }
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns existing
+
+        val price = mockk<com.stripe.model.Price> { every { id } returns "price_pro_123" }
+        val item = mockk<com.stripe.model.SubscriptionItem> {
+            every { this@mockk.price } returns price
+            every { currentPeriodEnd } returns 1_700_000_000L
+        }
+        val items = mockk<com.stripe.model.SubscriptionItemCollection> { every { data } returns mutableListOf(item) }
+        val stripeSub = mockk<com.stripe.model.Subscription> {
+            every { this@mockk.items } returns items
+            every { status } returns "active"
+            every { id } returns "sub_pro_xyz"
+            every { cancelAtPeriodEnd } returns false
+            every { customer } returns "cus_abc"
+        }
+        val collection = mockk<StripeCollection<com.stripe.model.Subscription>> {
+            every { data } returns mutableListOf(stripeSub)
+        }
+        every { mockSubscriptionService.list(any<SubscriptionListParams>()) } returns collection
+        val slot = slot<Subscription>()
+        every { subscriptionRepository.save(capture(slot)) } answers { firstArg() }
+
+        service.syncFromStripe()
+
+        expectThat(slot.captured.isNew()).isFalse()
     }
 
     @Test

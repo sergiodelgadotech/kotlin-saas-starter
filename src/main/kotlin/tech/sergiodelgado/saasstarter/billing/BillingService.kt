@@ -52,6 +52,10 @@ open class BillingService(
             currentPeriodEnd       = StripeSubscriptionMapper.periodEnd(stripeSub),
             cancelAtPeriodEnd      = stripeSub.cancelAtPeriodEnd,
         )
+        // copy() resets the @Transient _new flag to true (it's not a constructor
+        // property), so without this the save() would INSERT and hit the PK. See
+        // Subscription._new / OrganizationService for the same pattern.
+        updated._new = false
         return subscriptionRepository.save(updated)
     }
 
