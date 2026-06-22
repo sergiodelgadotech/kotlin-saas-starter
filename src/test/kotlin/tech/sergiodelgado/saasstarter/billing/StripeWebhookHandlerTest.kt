@@ -124,7 +124,9 @@ class StripeWebhookHandlerTest {
 
         handler.handle(event)
 
-        verify { subscriptionRepository.save(match { it.plan == DefaultBillingPlan.PRO.name && it.status == SubscriptionStatus.ACTIVE }) }
+        // !it.isNew() guards the regression: copy() resets the @Transient _new flag to true, which
+        // would make Spring Data JDBC INSERT (and violate subscriptions_pkey) instead of UPDATE.
+        verify { subscriptionRepository.save(match { it.plan == DefaultBillingPlan.PRO.name && it.status == SubscriptionStatus.ACTIVE && !it.isNew() }) }
     }
 
     @Test
@@ -170,7 +172,7 @@ class StripeWebhookHandlerTest {
 
         handler.handle(event)
 
-        verify { subscriptionRepository.save(match { it.status == SubscriptionStatus.CANCELED }) }
+        verify { subscriptionRepository.save(match { it.status == SubscriptionStatus.CANCELED && !it.isNew() }) }
     }
 
     @Test
@@ -190,7 +192,7 @@ class StripeWebhookHandlerTest {
 
         handler.handle(event)
 
-        verify { subscriptionRepository.save(match { it.status == SubscriptionStatus.PAST_DUE }) }
+        verify { subscriptionRepository.save(match { it.status == SubscriptionStatus.PAST_DUE && !it.isNew() }) }
     }
 
     @Test
