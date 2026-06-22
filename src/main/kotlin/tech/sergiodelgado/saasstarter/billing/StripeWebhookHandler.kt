@@ -62,7 +62,7 @@ open class StripeWebhookHandler(
                 // In Stripe SDK v29+, currentPeriodEnd moved from Subscription to SubscriptionItem
                 currentPeriodEnd       = StripeSubscriptionMapper.periodEnd(stripeSub),
                 cancelAtPeriodEnd      = stripeSub.cancelAtPeriodEnd,
-            )
+            ).apply { _new = false }   // copy() resets _new → true; without this save() INSERTs and hits the PK
         )
     }
 
@@ -71,13 +71,13 @@ open class StripeWebhookHandler(
             .deserializeUnsafe() as com.stripe.model.Subscription
 
         val sub = subscriptionRepository.findByExternalSubscriptionId(stripeSub.id) ?: return
-        subscriptionRepository.save(sub.copy(status = SubscriptionStatus.CANCELED))
+        subscriptionRepository.save(sub.copy(status = SubscriptionStatus.CANCELED).apply { _new = false })
     }
 
     private fun handlePaymentFailed(event: Event) {
         val invoice = event.dataObjectDeserializer.deserializeUnsafe() as Invoice
         val sub = subscriptionRepository.findByExternalCustomerId(invoice.customer) ?: return
-        subscriptionRepository.save(sub.copy(status = SubscriptionStatus.PAST_DUE))
+        subscriptionRepository.save(sub.copy(status = SubscriptionStatus.PAST_DUE).apply { _new = false })
         emailService?.let { svc ->
             composePaymentFailedEmail(invoice, sub)?.let { msg ->
                 try {
