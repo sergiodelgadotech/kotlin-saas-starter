@@ -7,6 +7,8 @@ import tech.sergiodelgado.saasstarter.billing.BillingService
 import tech.sergiodelgado.saasstarter.billing.Subscription
 import tech.sergiodelgado.saasstarter.billing.StripeWebhookHandler
 import tech.sergiodelgado.saasstarter.billing.SubscriptionRepository
+import tech.sergiodelgado.saasstarter.organization.MemberRepository
+import tech.sergiodelgado.saasstarter.organization.OrganizationRepository
 import tech.sergiodelgado.saasstarter.email.EmailService
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfiguration
@@ -72,8 +74,12 @@ class BillingAutoConfiguration(
 
         @Bean
         @ConditionalOnMissingBean
-        fun billingService(repo: SubscriptionRepository, stripeClient: StripeClient): BillingService =
-            BillingService(repo, properties, stripeClient)
+        fun billingService(
+            repo: SubscriptionRepository,
+            orgRepo: OrganizationRepository,
+            memberRepo: MemberRepository,
+            stripeClient: StripeClient,
+        ): BillingService = BillingService(repo, orgRepo, memberRepo, properties, stripeClient)
 
         @Bean
         @ConditionalOnMissingBean

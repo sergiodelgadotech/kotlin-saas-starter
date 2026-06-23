@@ -31,13 +31,21 @@ import strikt.assertions.isFalse
 import strikt.assertions.isNull
 import strikt.assertions.isSameInstanceAs
 import tech.sergiodelgado.saasstarter.autoconfigure.SaasStarterProperties
+import tech.sergiodelgado.saasstarter.organization.DefaultMemberRole
+import tech.sergiodelgado.saasstarter.organization.Member
+import tech.sergiodelgado.saasstarter.organization.MemberRepository
+import tech.sergiodelgado.saasstarter.organization.Organization
+import tech.sergiodelgado.saasstarter.organization.OrganizationRepository
 import tech.sergiodelgado.saasstarter.tenant.TenantContext
 import tech.sergiodelgado.saasstarter.web.NotFoundException
+import java.util.Optional
 import java.util.UUID
 
 class BillingServiceTest {
 
     private val subscriptionRepository = mockk<SubscriptionRepository>()
+    private val organizationRepository = mockk<OrganizationRepository>()
+    private val memberRepository = mockk<MemberRepository>()
     private val mockV1 = mockk<V1Services>()
     private val mockCustomerService = mockk<CustomerService>()
     private val mockCheckoutService = mockk<CheckoutService>()
@@ -55,8 +63,15 @@ class BillingServiceTest {
             planPrices = mapOf("PRO" to "price_pro_123"),
         )
     )
-    private val service = BillingService(subscriptionRepository, properties, stripeClient)
+    private val service = BillingService(subscriptionRepository, organizationRepository, memberRepository, properties, stripeClient)
     private val orgId: UUID = UUID.randomUUID()
+    private val testOrg = Organization(id = orgId, name = "Acme", slug = "acme-123456")
+    private val ownerMember = Member(
+        organizationId = orgId,
+        externalUserId = "user-1",
+        role = DefaultMemberRole.OWNER.name,
+        email = "ceo@acme.com",
+    )
 
     @BeforeEach
     fun setUp() {
@@ -95,6 +110,17 @@ class BillingServiceTest {
     // ── createCheckoutSession ─────────────────────────────────────────────────
 
     @Test
+    fun `createCheckoutSession throws when subscription has no Stripe customer`() {
+        val sub = Subscription(organizationId = orgId, externalCustomerId = null)
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns sub
+
+        assertThrows<IllegalStateException> {
+            service.createCheckoutSession(DefaultBillingPlan.PRO)
+        }
+        verify(exactly = 0) { mockCheckoutSessionService.create(any<CheckoutSessionCreateParams>()) }
+    }
+
+    @Test
     fun `createCheckoutSession passes customer, price, mode, and URLs to Stripe via StripeClient`() {
         val sub = Subscription(organizationId = orgId, externalCustomerId = "cus_abc")
         every { subscriptionRepository.findByOrganizationId(orgId) } returns sub
@@ -116,6 +142,17 @@ class BillingServiceTest {
     }
 
     // ── createPortalSession ───────────────────────────────────────────────────
+
+    @Test
+    fun `createPortalSession throws when subscription has no Stripe customer`() {
+        val sub = Subscription(organizationId = orgId, externalCustomerId = null)
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns sub
+
+        assertThrows<IllegalStateException> {
+            service.createPortalSession()
+        }
+        verify(exactly = 0) { mockPortalSessionService.create(any<PortalSessionCreateParams>()) }
+    }
 
     @Test
     fun `createPortalSession passes customer and returnUrl to Stripe via StripeClient`() {
@@ -179,6 +216,8 @@ class BillingServiceTest {
     fun `createCustomer throws when Stripe API key is blank`() {
         val blankKeyService = BillingService(
             subscriptionRepository,
+            organizationRepository,
+            memberRepository,
             SaasStarterProperties(),
             stripeClient,
         )
@@ -244,7 +283,87 @@ class BillingServiceTest {
         expectThat(slot.captured.plan).isEqualTo("PRO")
     }
 
+    // ── ensureStripeCustomer ──────────────────────────────────────────────────
+
+    @Test
+    fun `ensureStripeCustomer returns existing subscription unchanged when customer already set`() {
+        val sub = Subscription(organizationId = orgId, externalCustomerId = "cus_existing")
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns sub
+
+        val result = service.ensureStripeCustomer()
+
+        expectThat(result).isSameInstanceAs(sub)
+        verify(exactly = 0) { mockCustomerService.create(any<CustomerCreateParams>()) }
+    }
+
+    @Test
+    fun `ensureStripeCustomer creates customer and attaches it when subscription has no customer`() {
+        val sub = Subscription(organizationId = orgId).apply { _new = false }
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns sub
+        every { organizationRepository.findById(orgId) } returns Optional.of(testOrg)
+        every { memberRepository.findByOrganizationId(orgId) } returns listOf(ownerMember)
+        val mockCustomer = mockk<Customer> { every { id } returns "cus_new" }
+        every { mockCustomerService.create(any<CustomerCreateParams>()) } returns mockCustomer
+        val saved = slot<Subscription>()
+        every { subscriptionRepository.save(capture(saved)) } answers { firstArg() }
+
+        service.ensureStripeCustomer()
+
+        expectThat(saved.captured.externalCustomerId).isEqualTo("cus_new")
+        expectThat(saved.captured.isNew()).isFalse()
+    }
+
+    @Test
+    fun `ensureStripeCustomer creates customer and new subscription when none exists`() {
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns null
+        every { organizationRepository.findById(orgId) } returns Optional.of(testOrg)
+        every { memberRepository.findByOrganizationId(orgId) } returns listOf(ownerMember)
+        val mockCustomer = mockk<Customer> { every { id } returns "cus_new" }
+        every { mockCustomerService.create(any<CustomerCreateParams>()) } returns mockCustomer
+        val saved = slot<Subscription>()
+        every { subscriptionRepository.save(capture(saved)) } answers { firstArg() }
+
+        service.ensureStripeCustomer()
+
+        expectThat(saved.captured.externalCustomerId).isEqualTo("cus_new")
+        expectThat(saved.captured.organizationId).isEqualTo(orgId)
+    }
+
+    // ── attachStripeCustomer ──────────────────────────────────────────────────
+
+    @Test
+    fun `attachStripeCustomer updates externalCustomerId and saves as not-new`() {
+        val existing = Subscription(organizationId = orgId, plan = "STARTER").apply { _new = false }
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns existing
+        val saved = slot<Subscription>()
+        every { subscriptionRepository.save(capture(saved)) } answers { firstArg() }
+
+        service.attachStripeCustomer("cus_upgraded")
+
+        expectThat(saved.captured.externalCustomerId).isEqualTo("cus_upgraded")
+        expectThat(saved.captured.isNew()).isFalse()
+    }
+
+    @Test
+    fun `attachStripeCustomer throws when no subscription exists`() {
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns null
+
+        assertThrows<IllegalStateException> { service.attachStripeCustomer("cus_x") }
+        verify(exactly = 0) { subscriptionRepository.save(any()) }
+    }
+
     // ── syncFromStripe ────────────────────────────────────────────────────────
+
+    @Test
+    fun `syncFromStripe returns sub unchanged and skips Stripe when externalCustomerId is null`() {
+        val sub = Subscription(organizationId = orgId, externalCustomerId = null)
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns sub
+
+        val result = service.syncFromStripe()
+
+        expectThat(result).isSameInstanceAs(sub)
+        verify(exactly = 0) { mockSubscriptionService.list(any<SubscriptionListParams>()) }
+    }
 
     @Test
     fun `syncFromStripe returns null when no local subscription exists`() {

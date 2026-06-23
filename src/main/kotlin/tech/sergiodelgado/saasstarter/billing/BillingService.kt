@@ -8,6 +8,9 @@ import com.stripe.param.checkout.SessionCreateParams as CheckoutSessionCreatePar
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 import tech.sergiodelgado.saasstarter.autoconfigure.SaasStarterProperties
+import tech.sergiodelgado.saasstarter.organization.DefaultMemberRole
+import tech.sergiodelgado.saasstarter.organization.MemberRepository
+import tech.sergiodelgado.saasstarter.organization.OrganizationRepository
 import tech.sergiodelgado.saasstarter.tenant.TenantContext
 import tech.sergiodelgado.saasstarter.web.NotFoundException
 import java.util.UUID
@@ -15,6 +18,8 @@ import java.util.UUID
 @Transactional
 open class BillingService(
     private val subscriptionRepository: SubscriptionRepository,
+    private val organizationRepository: OrganizationRepository,
+    private val memberRepository: MemberRepository,
     private val properties: SaasStarterProperties,
     private val stripeClient: StripeClient,
 ) {
@@ -32,12 +37,54 @@ open class BillingService(
      *
      * Returns the (possibly updated) subscription, or null if no local subscription exists.
      */
+    /**
+     * Ensures the current tenant's subscription has a Stripe customer, creating one if needed.
+     *
+     * - If no subscription exists, creates a Stripe customer then a new STARTER subscription.
+     * - If a subscription exists but has no Stripe customer (e.g. free STARTER plan upgrading),
+     *   creates a Stripe customer and attaches it.
+     * - If a subscription already has a Stripe customer, returns it unchanged.
+     */
+    fun ensureStripeCustomer(): Subscription {
+        val organizationId = TenantContext.get()
+        val sub = subscriptionRepository.findByOrganizationId(organizationId)
+        if (sub?.externalCustomerId != null) return sub
+
+        val org = checkNotNull(organizationRepository.findById(organizationId).orElse(null)) {
+            "Organization $organizationId not found"
+        }
+        val ownerEmail = memberRepository.findByOrganizationId(organizationId)
+            .firstOrNull { it.role == DefaultMemberRole.OWNER.name }?.email.orEmpty()
+        val customerId = createCustomer(organizationId, email = ownerEmail, name = org.name)
+
+        return if (sub == null) {
+            ensureSubscription(organizationId, customerId)
+        } else {
+            attachStripeCustomer(customerId)
+        }
+    }
+
+    /**
+     * Attaches [customerId] to the current tenant's subscription, which must already exist
+     * and must not already have a Stripe customer. Used when upgrading a free-plan subscription
+     * to a paid plan that requires a Stripe customer.
+     */
+    fun attachStripeCustomer(customerId: String): Subscription {
+        val organizationId = TenantContext.get()
+        val sub = checkNotNull(subscriptionRepository.findByOrganizationId(organizationId)) {
+            "No subscription found for organization $organizationId"
+        }
+        val updated = sub.copy(externalCustomerId = customerId).apply { _new = false }
+        return subscriptionRepository.save(updated)
+    }
+
     fun syncFromStripe(): Subscription? {
         val sub = currentSubscription() ?: return null
+        val customerId = sub.externalCustomerId ?: return sub
         val stripeSub = stripeClient.v1().subscriptions()
             .list(
                 SubscriptionListParams.builder()
-                    .setCustomer(sub.externalCustomerId)
+                    .setCustomer(customerId)
                     .setStatus(SubscriptionListParams.Status.ALL)
                     .setLimit(1L)
                     .build()
@@ -61,10 +108,13 @@ open class BillingService(
 
     fun createCheckoutSession(plan: BillingPlan): String {
         val sub = currentSubscription() ?: throw NotFoundException("No subscription found for organization")
+        val customerId = checkNotNull(sub.externalCustomerId) {
+            "Subscription for organization ${sub.organizationId} has no Stripe customer; cannot create checkout session"
+        }
         val priceId = priceIdFor(plan)
         return stripeClient.v1().checkout().sessions().create(
             CheckoutSessionCreateParams.builder()
-                .setCustomer(sub.externalCustomerId)
+                .setCustomer(customerId)
                 .setMode(CheckoutSessionCreateParams.Mode.SUBSCRIPTION)
                 .addLineItem(
                     CheckoutSessionCreateParams.LineItem.builder()
@@ -80,9 +130,12 @@ open class BillingService(
 
     fun createPortalSession(): String {
         val sub = currentSubscription() ?: throw NotFoundException("No subscription found for organization")
+        val customerId = checkNotNull(sub.externalCustomerId) {
+            "Subscription for organization ${sub.organizationId} has no Stripe customer; cannot create portal session"
+        }
         return stripeClient.v1().billingPortal().sessions().create(
             PortalSessionCreateParams.builder()
-                .setCustomer(sub.externalCustomerId)
+                .setCustomer(customerId)
                 .setReturnUrl(properties.billing.portalReturnUrl)
                 .build()
         ).url

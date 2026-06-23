@@ -26,7 +26,7 @@ CREATE INDEX idx_members_organization_id ON members(organization_id);
 CREATE TABLE subscriptions (
     id                       UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id          UUID         NOT NULL UNIQUE REFERENCES organizations(id) ON DELETE CASCADE,
-    external_customer_id     VARCHAR(255) NOT NULL UNIQUE,
+    external_customer_id     VARCHAR(255) UNIQUE,
     external_subscription_id VARCHAR(255),
     plan                     VARCHAR(50)  NOT NULL DEFAULT 'STARTER',
     status                   VARCHAR(50)  NOT NULL DEFAULT 'TRIALING',

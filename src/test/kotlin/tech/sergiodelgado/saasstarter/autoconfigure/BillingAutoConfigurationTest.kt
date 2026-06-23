@@ -6,6 +6,8 @@ import tech.sergiodelgado.saasstarter.billing.BillingService
 import tech.sergiodelgado.saasstarter.billing.Subscription
 import tech.sergiodelgado.saasstarter.billing.StripeWebhookHandler
 import tech.sergiodelgado.saasstarter.billing.SubscriptionRepository
+import tech.sergiodelgado.saasstarter.organization.MemberRepository
+import tech.sergiodelgado.saasstarter.organization.OrganizationRepository
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.boot.autoconfigure.AutoConfigurations
@@ -22,6 +24,8 @@ class BillingAutoConfigurationTest {
     private val contextRunner = ApplicationContextRunner()
         .withConfiguration(AutoConfigurations.of(BillingAutoConfiguration::class.java))
         .withBean(SubscriptionRepository::class.java, { mockk<SubscriptionRepository>() })
+        .withBean(OrganizationRepository::class.java, { mockk<OrganizationRepository>() })
+        .withBean(MemberRepository::class.java, { mockk<MemberRepository>() })
 
     @BeforeEach
     fun resetStripeKey() {

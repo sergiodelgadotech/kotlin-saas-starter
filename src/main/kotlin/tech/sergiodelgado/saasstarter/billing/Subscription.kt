@@ -21,8 +21,8 @@ import java.util.UUID
 data class Subscription(
     @Id @get:JvmName("entityId") val id: UUID = UUID.randomUUID(),
     val organizationId: UUID,
-    /** Customer ID at the billing provider (Stripe `cus_*`, Paddle, etc.). */
-    val externalCustomerId: String,
+    /** Customer ID at the billing provider (Stripe `cus_*`, Paddle, etc.). Null for free plans that never touch Stripe. */
+    val externalCustomerId: String? = null,
     /** Subscription ID at the billing provider; null until the customer completes checkout. */
     val externalSubscriptionId: String? = null,
     val plan: String = DefaultBillingPlan.STARTER.name,
