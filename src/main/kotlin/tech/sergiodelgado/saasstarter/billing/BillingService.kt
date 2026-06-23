@@ -31,13 +31,6 @@ open class BillingService(
         subscriptionRepository.findByOrganizationId(TenantContext.get())
 
     /**
-     * Fetches the current Stripe subscription for this tenant's customer and updates the local
-     * [Subscription] row to match it. Call this on the success-return from Stripe Checkout to
-     * ensure the plan is correct before the async webhook lands.
-     *
-     * Returns the (possibly updated) subscription, or null if no local subscription exists.
-     */
-    /**
      * Ensures the current tenant's subscription has a Stripe customer, creating one if needed.
      *
      * - If no subscription exists, creates a Stripe customer then a new STARTER subscription.
@@ -78,6 +71,13 @@ open class BillingService(
         return subscriptionRepository.save(updated)
     }
 
+    /**
+     * Fetches the current Stripe subscription for this tenant's customer and updates the local
+     * [Subscription] row to match it. Call this on the success-return from Stripe Checkout to
+     * ensure the plan is correct before the async webhook lands.
+     *
+     * Returns the (possibly updated) subscription, or null if no local subscription exists.
+     */
     fun syncFromStripe(): Subscription? {
         val sub = currentSubscription() ?: return null
         val customerId = sub.externalCustomerId ?: return sub
