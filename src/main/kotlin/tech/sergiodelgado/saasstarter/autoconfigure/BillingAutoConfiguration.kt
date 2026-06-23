@@ -75,11 +75,11 @@ class BillingAutoConfiguration(
         @Bean
         @ConditionalOnMissingBean
         fun billingService(
-            repo: SubscriptionRepository,
+            subRepo: SubscriptionRepository,
             orgRepo: OrganizationRepository,
             memberRepo: MemberRepository,
             stripeClient: StripeClient,
-        ): BillingService = BillingService(repo, orgRepo, memberRepo, properties, stripeClient)
+        ): BillingService = BillingService(subRepo, orgRepo, memberRepo, properties, stripeClient)
 
         @Bean
         @ConditionalOnMissingBean
