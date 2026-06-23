@@ -6,6 +6,7 @@ import com.stripe.param.SubscriptionListParams
 import com.stripe.param.billingportal.SessionCreateParams as PortalSessionCreateParams
 import com.stripe.param.checkout.SessionCreateParams as CheckoutSessionCreateParams
 import org.slf4j.LoggerFactory
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
 import tech.sergiodelgado.saasstarter.autoconfigure.SaasStarterProperties
 import tech.sergiodelgado.saasstarter.organization.DefaultMemberRole
@@ -43,7 +44,7 @@ open class BillingService(
         val sub = subscriptionRepository.findByOrganizationId(organizationId)
         if (sub?.externalCustomerId != null) return sub
 
-        val org = checkNotNull(organizationRepository.findById(organizationId).orElse(null)) {
+        val org = checkNotNull(organizationRepository.findByIdOrNull(organizationId)) {
             "Organization $organizationId not found"
         }
         val ownerEmail = memberRepository.findByOrganizationId(organizationId)
