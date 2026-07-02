@@ -30,4 +30,8 @@ interface MemberRepository : CrudRepository<Member, UUID> {
     @Modifying
     @Query("UPDATE members SET email = :email, first_name = :firstName, last_name = :lastName WHERE external_user_id = :externalUserId")
     fun updateProfile(externalUserId: String, email: String, firstName: String?, lastName: String?)
+
+    @Modifying
+    @Query("UPDATE members SET avatar_url = :avatarUrl WHERE external_user_id = :externalUserId")
+    fun updateAvatarUrl(externalUserId: String, avatarUrl: String?)
 }

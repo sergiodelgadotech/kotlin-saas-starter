@@ -45,6 +45,7 @@ data class Member(
     val email: String = "",
     val firstName: String? = null,
     val lastName: String? = null,
+    val avatarUrl: String? = null,
     val createdAt: Instant = Instant.now(),
 ) : Persistable<UUID> {
     /**
